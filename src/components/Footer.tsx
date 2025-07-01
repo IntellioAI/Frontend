@@ -81,7 +81,7 @@ export function Footer() {
                     : ""
                 }`}
               >
-                Genius.AI
+                Intellio.AI
               </span>
             </Link>
             <div className="relative">
@@ -144,9 +144,8 @@ export function Footer() {
               gradient: "from-indigo-200 to-indigo-400",
               links: [
                 { title: "Products", to: "/Products" },
-                { title: "Code Playground", to: "/playground" },
-                { title: "Blog", to: "/blog", external: true },
-              ],
+                { title: "Code Playground", to: "/playground" }
+              ] as { title: string; to: string; external?: boolean }[],
             },
             {
               title: "Support",
@@ -158,7 +157,7 @@ export function Footer() {
                 { title: "API Reference", to: "/api" },
                 { title: "System Status", to: "/status" },
                 { title: "Contact Us", to: "/contact" },
-              ],
+              ] as { title: string; to: string; external?: boolean }[],
             },
             {
               title: "Company",
@@ -170,7 +169,7 @@ export function Footer() {
                 { title: "Press Kit", to: "/press" },
                 { title: "Terms of Service", to: "/terms" },
                 { title: "Privacy Policy", to: "/privacy" },
-              ],
+              ] as { title: string; to: string; external?: boolean }[],
             },
           ].map((section, index) => (
             <div key={index} className="relative z-10">
@@ -279,18 +278,18 @@ export function Footer() {
               {[
                 {
                   icon: MapPin,
-                  text: "Bangalore, India",
-                  href: "https://maps.google.com/maps?q=Bangalore,India",
+                  text: "Hyderabad, India",
+                  href: "https://maps.google.com/maps?q=Hyderbad,India",
                 },
                 {
                   icon: Phone,
-                  text: "+91 (800) 123-4567",
+                  text: "+91 8001234567",
                   href: "tel:+918001234567",
                 },
                 {
                   icon: Mail,
-                  text: "support@genius.ai",
-                  href: "mailto:support@genius.ai",
+                  text: "support@Intellio.ai",
+                  href: "mailto:support@Intellio.ai",
                 },
               ].map((contact, index) => (
                 <li key={index} className="group">
@@ -349,7 +348,7 @@ export function Footer() {
             >
               © {new Date().getFullYear()}{" "}
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 font-medium">
-                Genius.AI
+                Intellio.AI
               </span>
               . All rights reserved.
             </p>

@@ -1,1 +1,1 @@
-### GENIUS.AI
+### Intellio.AI

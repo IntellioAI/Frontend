@@ -1,5 +1,5 @@
 // public/sw.js
-const CACHE_NAME = 'genius-ai-v1';
+const CACHE_NAME = 'Intellio-ai-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -508,7 +508,7 @@ export default function Home() {
     {(() => {
         const testimonials = [
           {
-            quote: "Genius transformed my understanding of complex algorithms. The interactive labs make learning both fun and effective.",
+            quote: "Intellio transformed my understanding of complex algorithms. The interactive labs make learning both fun and effective.",
             name: "Rahul Sharma",
             role: "CS Student, IIT Delhi",
             avatar: "/images/testimonials/user1.webp",
@@ -536,7 +536,7 @@ export default function Home() {
             color: "indigo"
           },
           {
-            quote: "As someone who struggled with programming, Genius.AI's step-by-step approach made complex concepts accessible.",
+            quote: "As someone who struggled with programming, Intellio.AI's step-by-step approach made complex concepts accessible.",
             name: "Vikram Singh",
             role: "IT Student, IIIT Hyderabad",
             avatar: "/images/testimonials/user2.webp",
@@ -684,7 +684,7 @@ export default function Home() {
               Ready to Start Your Journey?
             </h2>
             <p className={`text-xl md:text-2xl text-indigo-100 mb-8 md:mb-10 ${!shouldReduceMotion ? 'animate-fade-in animate-delay-200' : ''}`}>
-              Join 50,000+ students mastering engineering with Genius. Take the first step toward your dream career today!
+              Join 50,000+ students mastering engineering with Intellio. Take the first step toward your dream career today!
             </p>
             <div className={`flex flex-col sm:flex-row justify-center gap-4 md:gap-6 ${!shouldReduceMotion ? 'animate-fade-in animate-delay-300' : ''}`}>
               <Link

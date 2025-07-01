@@ -16,10 +16,9 @@ import {
 } from "lucide-react";
 import { isSlowDevice, useReducedMotion } from "../utils/deviceDetection";
 import { useTheme } from "../context/useTheme";
-import type { Product } from "../types";
 import "./Products.css"; // Import the CSS file with animations
 
-const PRODUCTS: Product[] = [
+const PRODUCTS = [
   {
     id: "code-playground",
     title: "Code Playground",
@@ -182,11 +181,11 @@ export default function Products() {
       const matchesTier =
         selectedTier === "All Tiers" || product.tier === selectedTier;
       const matchesPricing = matchesPricingRange(product.pricing, selectedPricing);
-      const matchesSearch =
+      const matchesSearch: boolean =
         searchQuery === "" ||
         product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.features.some(feature => 
+        product.features.some((feature: string) => 
           feature.toLowerCase().includes(searchQuery.toLowerCase())
         );
       return (
@@ -640,7 +639,7 @@ export default function Products() {
                       {/* Features list */}
                       <div className="mb-4">
                         <div className="flex flex-wrap gap-1">
-                          {product.features.slice(0, 3).map((feature, idx) => (
+                          {product.features.slice(0, 3).map((feature: string, idx: number) => (
                             <span
                               key={idx}
                               className="px-2 py-1 bg-indigo-500/10 text-indigo-300 text-xs rounded-full"
