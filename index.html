@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  
+  <!-- Performance optimizations -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Conditional preloading for desktop only -->
+  <script>
+    if (window.innerWidth > 768) {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = '/images/HERO.avif';
+      link.fetchPriority = 'high';
+      document.head.appendChild(link);
+    }
+  </script>
+  
+  <!-- SEO and accessibility -->
+  <meta name="description" content="Genius.AI - Learn engineering with AI-powered courses and a global community of experts. Master in-demand skills with personalized learning paths." />
+  <meta name="theme-color" content="#0f0f14" />
+  <meta name="color-scheme" content="dark" />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Genius.AI | Modern Engineering Education" />
+  <meta property="og:description" content="Learn engineering with AI-powered courses and a global community of experts" />
+  <meta property="og:image" content="/images/og-image.jpg" />
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  
+  <!-- Disable animations for slow devices -->
+  <script>
+    if (navigator.hardwareConcurrency <= 2 || navigator.deviceMemory <= 2) {
+      document.documentElement.classList.add('reduce-motion');
+    }
+  </script>
+  
+  <title>Genius.AI | Modern Engineering Education</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  
+  <!-- Service Worker for better caching -->
+  <script>
+    if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
+</body>
+
+</html>

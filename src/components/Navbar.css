@@ -1,0 +1,275 @@
+/* Navbar.css - Optimized for performance */
+
+/* Mobile menu overlay styles */
+body.mobile-menu-open {
+  overflow: hidden;
+}
+
+.mobile-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS devices */
+  overscroll-behavior: contain; /* Prevent scroll chaining */
+}
+
+/* Mobile menu overlay background */
+.mobile-menu-overlay {
+  position: fixed;
+  top: 4rem; /* Height of navbar */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  z-index: 40;
+  touch-action: none; /* Prevent scrolling on overlay */
+}
+
+
+
+/* Disable animations on mobile */
+@media (max-width: 768px) {
+  .animate-fadeIn,
+  .animate-slideIn,
+  .animate-pulse-slow,
+  .animate-pulse-slow-alt,
+  .notification-pulse {
+    animation: none !important;
+  }
+  
+  /* Disable transition effects on mobile */
+  .transition-all,
+  .transition-colors,
+  .transition-transform {
+    transition: none !important;
+  }
+  
+  /* Simplify hover states on mobile */
+  .hover\:bg-gray-900\/60:hover,
+  .hover\:text-white:hover,
+  .hover\:bg-gray-800\/50:hover,
+  .hover\:text-indigo-300:hover {
+    background-color: initial !important;
+    color: initial !important;
+  }
+  
+  /* Disable shadows and blur effects */
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-\[0_0_15px_rgba\(79\,70\,229\,0\.4\)\],
+  .shadow-\[0_0_20px_rgba\(79\,70\,229\,0\.6\)\],
+  .backdrop-blur-xl,
+  .backdrop-blur-sm {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* Desktop animations */
+@media (min-width: 769px) {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulseSlow {
+    0%, 100% {
+      opacity: 0.05;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.1;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes pulseSlowAlt {
+    0%, 100% {
+      opacity: 0.05;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.08;
+      transform: scale(1.15);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.15s ease-out forwards;
+  }
+
+  .animate-slideIn {
+    animation: slideIn 0.25s ease-out forwards;
+  }
+
+  .animate-pulse-slow {
+    animation: pulseSlow 8s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow-alt {
+    animation: pulseSlowAlt 10s ease-in-out infinite;
+    animation-delay: 4s;
+  }
+}
+
+/* Ensure proper stacking context */
+nav {
+  isolation: isolate;
+}
+
+/* Proper click area for dropdown */
+.relative:has([aria-expanded="true"]) {
+  z-index: 10;
+}
+
+/* Custom scrollbar for dropdown - only on desktop */
+@media (min-width: 769px) {
+  .absolute::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .absolute::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .absolute::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+
+  .absolute::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Mobile menu optimizations */
+@media (max-width: 768px) {
+  .mobile-menu {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.98), rgba(9, 9, 11, 0.98), rgba(0, 0, 0, 0.98));
+    z-index: 40;
+    box-shadow: none;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Optimize touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
+    -webkit-touch-callout: none; /* Disable callout */
+    -webkit-user-select: none; /* Disable selection */
+    user-select: none;
+  }
+  
+  /* Ensure navbar is not too tall on small screens */
+  nav {
+    height: auto;
+    min-height: 56px;
+  }
+  
+  /* Fix for mobile Safari input zoom issue */
+  input[type="text"],
+  input[type="search"] {
+    font-size: 16px;
+  }
+  
+  /* Simplify dropdown menus */
+  .dropdown-menu {
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Extra small device adjustments */
+@media (max-width: 375px) {
+  .navbar-logo-text {
+    font-size: 1.25rem;
+  }
+  
+  .navbar-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  /* Ensure touch targets are big enough on small screens */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Landscape mode adjustments for mobile */
+@media (max-height: 480px) and (orientation: landscape) {
+  .mobile-menu {
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Compact menu items in landscape */
+  .mobile-menu .flex-col > a {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+
+/* Prevent body scroll when mobile menu is open */
+body.mobile-menu-open {
+  overflow: hidden;
+}
+
+/* Smooth transitions for desktop only */
+@media (min-width: 769px) {
+  button, 
+  a, 
+  input {
+    transition: all 0.2s ease-in-out;
+  }
+}
+
+/* Ensure immediate response on mobile */
+@media (max-width: 768px) {
+  button, 
+  a, 
+  input {
+    transition: none !important;
+  }
+}

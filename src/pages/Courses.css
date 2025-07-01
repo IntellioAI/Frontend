@@ -1,0 +1,138 @@
+/* Animations for filter panel */
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes floatUpDown {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Slow pulse animation for pagination background */
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Ellipsis animation for pagination */
+@keyframes ellipsisPulse {
+  0% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+}
+
+/* Apply ellipsis animation to dots with staggered delays */
+.ellipsis-animation span:nth-child(1) {
+  animation: ellipsisPulse 1.5s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.ellipsis-animation span:nth-child(2) {
+  animation: ellipsisPulse 1.5s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.ellipsis-animation span:nth-child(3) {
+  animation: ellipsisPulse 1.5s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+.animate-fadeSlideUp {
+  animation: fadeSlideUp 0.5s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 4s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: floatUpDown 3s ease-in-out infinite;
+}
+
+/* Staggered animations for filter items */
+.filter-item-1 { animation-delay: 0.1s; }
+.filter-item-2 { animation-delay: 0.2s; }
+.filter-item-3 { animation-delay: 0.3s; }
+
+/* Hover effect for select dropdowns */
+.select-container:hover .chevron-icon {
+  transform: translateY(-50%) scale(1.2);
+  color: #818cf8; /* indigo-400 */
+}
+
+/* Scale effect for filter button */
+.filter-button:active {
+  transform: scale(0.95);
+}
+
+/* Hide scrollbar for pagination */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Gradient shift animation for hero backgrounds */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+    opacity: 0.05;
+  }
+  50% {
+    background-position: 100% 50%;
+    opacity: 0.1;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0.05;
+  }
+}
+
+.animate-gradient-shift {
+  animation: gradientShift 8s ease infinite;
+  background-size: 200% 200%;
+}
