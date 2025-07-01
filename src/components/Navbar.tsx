@@ -1,4 +1,4 @@
-import { BookOpen, User, Menu, Search, ChevronDown, Code, Users, FileText, Globe, Sun, Moon } from 'lucide-react';
+import { BookOpen, User, Menu, Search, ChevronDown, Code, Globe, Sun, Moon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { isMobile } from '../utils/deviceDetection';
 import { searchContent, SearchResult } from '../utils/searchUtils';
@@ -117,10 +117,6 @@ export function Navbar() {
     switch (type) {
       case 'course':
         return <BookOpen className="h-4 w-4 text-indigo-400" />;
-      case 'resource':
-        return <FileText className="h-4 w-4 text-violet-400" />;
-      case 'community':
-        return <Users className="h-4 w-4 text-emerald-400" />;
       case 'playground':
         return <Code className="h-4 w-4 text-amber-400" />;
       default:
@@ -147,12 +143,12 @@ export function Navbar() {
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
               <span className={`text-2xl font-bold text-transparent bg-clip-text ${theme === 'dark' ? 'bg-gradient-to-r from-indigo-400 to-violet-400' : 'bg-gradient-to-r from-indigo-600 to-violet-600'} ${!isMobileDevice ? `${theme === 'dark' ? 'group-hover:from-indigo-300 group-hover:to-violet-300' : 'group-hover:from-indigo-500 group-hover:to-violet-500'} transition-all duration-300` : ''}`}>
-                Genius.AI
+                Intellio.ai
               </span>
             </Link>
             
             <div className="hidden lg:flex items-center ml-12 space-x-6">
-              {['Courses', 'Playground', 'Resources', 'Community'].map((item) => (
+              {['Products', 'Playground'].map((item) => (
                 <Link 
                   key={item}
                   to={`/${item.toLowerCase()}`}
@@ -206,7 +202,13 @@ export function Navbar() {
                         className={`flex items-center px-3 py-3 ${!isMobileDevice ? 'hover:bg-gray-800/50 transition-all duration-200' : ''} border-b border-gray-800/20 last:border-b-0`}
                       >
                         <div className="mr-3">
-                          <div className={`p-1.5 rounded-md ${result.type === 'course' ? 'bg-indigo-500/20' : result.type === 'resource' ? 'bg-violet-500/20' : result.type === 'community' ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
+                          <div className={`p-1.5 rounded-md ${
+                            result.type === 'course'
+                              ? 'bg-indigo-500/20'
+                              : result.type === 'playground'
+                              ? 'bg-emerald-500/20'
+                              : 'bg-amber-500/20'
+                          }`}>
                             {getResultIcon(result.type)}
                           </div>
                         </div>
@@ -309,7 +311,7 @@ export function Navbar() {
             <div className="mobile-menu-overlay" onClick={() => setIsMenuOpen(false)}></div>
             <div ref={menuRef} className={`lg:hidden py-6 border-t border-gray-800/30 ${!isMobileDevice ? 'animate-fadeIn' : ''} mobile-menu bg-black`}>
             <div className="flex flex-col space-y-3 px-2">
-              {['Courses', 'Playground', 'Resources', 'Community'].map((item) => (
+              {['Products', 'Playground'].map((item) => (
                 <Link 
                   key={item}
                   to={`/${item.toLowerCase()}`} 
@@ -317,12 +319,8 @@ export function Navbar() {
                   className={`px-4 py-3.5 text-gray-200 ${!isMobileDevice ? 'hover:text-white hover:bg-gray-900 transition-all duration-200' : ''} rounded-xl flex items-center touch-target bg-black/90 border border-gray-800/30 active:bg-gray-900/80`}
                 >
                   <div className="mr-3 p-1.5 rounded-md bg-gradient-to-br from-indigo-600/20 to-violet-600/20 backdrop-blur-sm">
-                    {item === 'Courses' && <BookOpen className="h-4 w-4 text-indigo-400" />}
+                    {item === 'Products' && <BookOpen className="h-4 w-4 text-indigo-400" />}
                     {item === 'Playground' && <Code className="h-4 w-4 text-violet-400" />}
-                    {item === 'Resources' && <svg className="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>}
-                    {item === 'Community' && <Users className="h-4 w-4 text-violet-400" />}
                   </div>
                   <span className="font-medium">{item}</span>
                   <svg className="ml-auto h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -358,7 +356,13 @@ export function Navbar() {
                           className={`flex items-center px-3 py-3 ${!isMobileDevice ? 'hover:bg-gray-800/50 transition-all duration-200' : ''} border-b border-gray-800/20 last:border-b-0`}
                         >
                           <div className="mr-3 flex-shrink-0">
-                            <div className={`p-1.5 rounded-md ${result.type === 'course' ? 'bg-indigo-500/20' : result.type === 'resource' ? 'bg-violet-500/20' : result.type === 'community' ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
+                            <div className={`p-1.5 rounded-md ${
+                              result.type === 'course'
+                                ? 'bg-indigo-500/20'
+                                : result.type === 'playground'
+                                ? 'bg-emerald-500/20'
+                                : 'bg-amber-500/20'
+                            }`}>
                             {getResultIcon(result.type)}
                             </div>
                           </div>

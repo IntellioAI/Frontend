@@ -5,12 +5,12 @@ export interface SearchResult {
   id: string;
   title: string;
   description: string;
-  type: 'course' | 'resource' | 'community' | 'playground';
+  type: 'course' | 'playground';
   url: string;
 }
 
-// Courses data
-const COURSES: Course[] = [
+// Products data
+const Products: Course[] = [
   {
     id: 'cs-1',
     title: 'Data Structures & Algorithms',
@@ -85,56 +85,6 @@ const COURSES: Course[] = [
   }
 ];
 
-// Resources data
-const RESOURCES: SearchResult[] = [
-  {
-    id: 'res-1',
-    title: 'Algorithm Visualization Tools',
-    description: 'Interactive tools for visualizing complex algorithms and data structures.',
-    type: 'resource',
-    url: '/resources/algorithm-visualization'
-  },
-  {
-    id: 'res-2',
-    title: 'Machine Learning Cheat Sheets',
-    description: 'Comprehensive cheat sheets for machine learning concepts and algorithms.',
-    type: 'resource',
-    url: '/resources/ml-cheatsheets'
-  },
-  {
-    id: 'res-3',
-    title: 'Web Development Resources',
-    description: 'Curated collection of tools, libraries, and frameworks for modern web development.',
-    type: 'resource',
-    url: '/resources/web-development'
-  }
-];
-
-// Community data
-const COMMUNITY: SearchResult[] = [
-  {
-    id: 'comm-1',
-    title: 'AI Ethics Discussion Group',
-    description: 'Join discussions on ethical considerations in artificial intelligence development.',
-    type: 'community',
-    url: '/community/ai-ethics'
-  },
-  {
-    id: 'comm-2',
-    title: 'Coding Challenge Club',
-    description: 'Weekly coding challenges and collaborative problem-solving sessions.',
-    type: 'community',
-    url: '/community/coding-challenges'
-  },
-  {
-    id: 'comm-3',
-    title: 'Tech Career Network',
-    description: 'Connect with industry professionals and get career advice in tech fields.',
-    type: 'community',
-    url: '/community/career-network'
-  }
-];
-
 // Playground data
 const PLAYGROUND: SearchResult[] = [
   {
@@ -160,20 +110,18 @@ const PLAYGROUND: SearchResult[] = [
   }
 ];
 
-// Convert courses to search results
-const courseSearchResults: SearchResult[] = COURSES.map(course => ({
+// Convert Products to search results
+const ProductsearchResults: SearchResult[] = Products.map(course => ({
   id: course.id,
   title: course.title,
   description: course.description,
   type: 'course',
-  url: `/courses/${course.id}`
+  url: `/Products/${course.id}`
 }));
 
 // Combine all search results
 export const ALL_SEARCH_RESULTS: SearchResult[] = [
-  ...courseSearchResults,
-  ...RESOURCES,
-  ...COMMUNITY,
+  ...ProductsearchResults,
   ...PLAYGROUND
 ];
 

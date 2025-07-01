@@ -3,13 +3,13 @@ import { BookOpen, Code, Video, Users, Award, Brain, ArrowRight, Star, Check, Ta
 import { Link } from 'react-router-dom';
 import { isMobile, isSlowDevice, useReducedMotion } from '../utils/deviceDetection';
 
-const FEATURED_COURSES = [
+const FEATURED_Products = [
   {
     id: '1',
     title: 'Advanced Data Structures & Algorithms',
     description: 'Master complex algorithms and data structures with hands-on practice and real-world applications.',
     instructor: 'Dr. Sarah Johnson',
-    thumbnail: '/images/courses/courses1.webp',
+    thumbnail: '/images/products/code-playground.webp',
     duration: '12 weeks',
     level: 'Advanced',
     students: 1200,
@@ -24,7 +24,7 @@ const FEATURED_COURSES = [
     title: 'ML & Neural Networks',
     description: 'Deep dive into ML algorithms, neural networks, and practical AI applications.',
     instructor: 'Prof. Michael Chen',
-    thumbnail: '/images/courses/courses2.webp',
+    thumbnail: '/images/products/digital-clone.webp',
     duration: '10 weeks',
     level: 'Intermediate',
     students: 950,
@@ -39,7 +39,7 @@ const FEATURED_COURSES = [
     title: 'Full Stack Development',
     description: 'Build scalable web applications using cutting-edge technologies and best practices.',
     instructor: 'Emily Rodriguez',
-    thumbnail: '/images/courses/courses3.webp',
+    thumbnail: '/images/products/faculty-dashboard.webp',
     duration: '14 weeks',
     level: 'Intermediate',
     students: 1500,
@@ -105,7 +105,7 @@ export default function Home() {
     <main className="min-h-screen" style={{ backgroundColor: 'var(--background)' }}>
       {/* Hero Section */}
       <section id="hero" className="relative overflow-hidden" style={{ background: 'var(--header-bg)' }}>
-        <a href="#courses" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-md">
+        <a href="#Products" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-md">
           Skip to main content
         </a>
         
@@ -157,15 +157,15 @@ export default function Home() {
               </span>
             </div>
             <p className={`text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto mb-12 leading-relaxed ${!shouldReduceMotion ? 'animate-fade-in animate-delay-200' : ''}`}>
-              Access world-class engineering education with interactive courses, AI-powered learning, and a global community of peers and mentors.
+              Access world-class engineering education with interactive Products, AI-powered learning, and a global community of peers and mentors.
             </p>
             <div className={`flex flex-col sm:flex-row justify-center gap-6 ${!shouldReduceMotion ? 'animate-fade-in-up animate-delay-300' : ''}`}>
               <Link
-                to="/courses"
+                to="/Products"
                 className="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
-                aria-label="Explore all available courses"
+                aria-label="Explore all available Products"
               >
-                Explore Courses
+                Explore Products
                 <ArrowRight className={`ml-2 h-5 w-5 ${!shouldReduceMotion ? 'group-hover:translate-x-1 transition-transform' : ''}`} />
               </Link>
               <Link
@@ -322,8 +322,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Popular Courses Section - optimized for mobile */}
-      <section id="courses" className="py-24 md:py-32 relative bg-gradient-to-br from-black via-gray-950/90 to-black overflow-hidden" aria-labelledby="courses-heading">
+      {/* Popular Products Section - optimized for mobile */}
+      <section id="Products" className="py-24 md:py-32 relative bg-gradient-to-br from-black via-gray-950/90 to-black overflow-hidden" aria-labelledby="Products-heading">
         {!isMobileDevice && !shouldReduceMotion && (
           <>
             <div className="absolute top-0 -left-4 w-72 h-72 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-4000"></div>
@@ -336,25 +336,25 @@ export default function Home() {
             <div>
               <div className="inline-flex items-center px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-500/10 text-indigo-300 mb-4 md:mb-6">
                 <Globe className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
-                <span className="text-xs md:text-sm font-medium">Popular Courses</span>
+                <span className="text-xs md:text-sm font-medium">Popular Products</span>
               </div>
-              <h2 id="courses-heading" className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 text-white">Start Your Learning Journey</h2>
+              <h2 id="Products-heading" className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 text-white">Start Your Learning Journey</h2>
               <p className="text-base md:text-xl text-slate-300">Begin with our most sought-after programs</p>
             </div>
             <Link 
-              to="/courses" 
+              to="/Products" 
               className="hidden md:inline-flex items-center text-indigo-400 hover:text-indigo-300 font-semibold group"
-              aria-label="View all available courses"
+              aria-label="View all available Products"
             >
-              View All Courses 
+              View All Products 
               <ArrowRight className={`ml-2 h-5 w-5 ${!shouldReduceMotion ? 'transform group-hover:translate-x-1 transition-transform' : ''}`} />
             </Link>
           </div>
           
           {/* Mobile-optimized course grid with improved performance */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {FEATURED_COURSES.map((course, index) => {
-              // Apply will-change only to visible courses for better performance
+            {FEATURED_Products.map((course, index) => {
+              // Apply will-change only to visible Products for better performance
               const applyWillChange = index < 3;
               const transitionDuration = isMobileDevice ? '250ms' : '300ms';
               
@@ -475,188 +475,198 @@ export default function Home() {
           {/* Mobile-only View All button */}
           <div className="mt-8 flex justify-center md:hidden">
             <Link 
-              to="/courses" 
+              to="/Products" 
               className="inline-flex items-center justify-center w-full max-w-xs px-6 py-3 bg-indigo-600/90 text-white rounded-xl font-semibold shadow-md transition-colors duration-300"
-              aria-label="View all available courses"
+              aria-label="View all available Products"
             >
-              View All Courses
+              View All Products
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section - simplified for mobile */}
-      <section id="testimonials" className="py-16 md:py-24 bg-gradient-to-br from-black via-gray-950/95 to-black section-padding relative overflow-hidden" aria-labelledby="testimonials-heading">
-        {!isMobileDevice && (
+     {/* Testimonials Section - simplified for mobile */}
+<section id="testimonials" className="py-16 md:py-24 bg-gradient-to-br from-black via-gray-950/95 to-black section-padding relative overflow-hidden" aria-labelledby="testimonials-heading">
+  {!isMobileDevice && (
+    <>
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob"></div>
+      <div className="absolute bottom-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-2000"></div>
+    </>
+  )}
+  
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="text-center mb-8 md:mb-16 relative z-10">
+      <div className={`inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-6 ${!shouldReduceMotion ? 'animate-fade-in' : ''}`}>
+        <span className={`flex h-2 w-2 rounded-full bg-indigo-300 ${!shouldReduceMotion ? 'animate-pulse' : ''} mr-2`}></span>
+        <span className="text-sm font-medium">Student Testimonials</span>
+      </div>
+      <h2 id="testimonials-heading" className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 text-white">What Our Students Say</h2>
+      <p className="text-base md:text-xl text-indigo-200/80 max-w-2xl mx-auto">Join thousands of satisfied learners who've transformed their careers with our Products</p>
+    </div>
+    
+    {(() => {
+        const testimonials = [
+          {
+            quote: "Genius transformed my understanding of complex algorithms. The interactive labs make learning both fun and effective.",
+            name: "Rahul Sharma",
+            role: "CS Student, IIT Delhi",
+            avatar: "/images/testimonials/user1.webp",
+            color: "indigo"
+          },
+          {
+            quote: "The AI-powered feedback helped me identify gaps in my knowledge. I've improved drastically in just 3 months.",
+            name: "Priya Kapoor",
+            role: "ECE Student, BITS Pilani",
+            avatar: "/images/testimonials/user2.webp",
+            color: "purple"
+          },
+          {
+            quote: "The community support is amazing. I found study partners and mentors who helped me excel in my Products.",
+            name: "Amit Verma",
+            role: "ME Student, NIT Trichy",
+            avatar: "/images/testimonials/user3.webp",
+            color: "pink"
+          },
+          {
+            quote: "The personalized learning path helped me focus on areas where I needed improvement. The results speak for themselves!",
+            name: "Ananya Patel",
+            role: "CSE Student, VIT Vellore",
+            avatar: "/images/testimonials/user1.webp",
+            color: "indigo"
+          },
+          {
+            quote: "As someone who struggled with programming, Genius.AI's step-by-step approach made complex concepts accessible.",
+            name: "Vikram Singh",
+            role: "IT Student, IIIT Hyderabad",
+            avatar: "/images/testimonials/user2.webp",
+            color: "purple"
+          },
+          {
+            quote: "The practice problems and real-world projects helped me build a portfolio that impressed recruiters during my internship search.",
+            name: "Neha Gupta",
+            role: "ECE Student, DTU Delhi",
+            avatar: "/images/testimonials/user3.webp",
+            color: "pink"
+          }
+        ];
+
+        // Calculate slides based on screen size
+        const slidesPerView = isMobileDevice ? 1 : 3;
+        const totalSlides = Math.ceil(testimonials.length / slidesPerView);
+        const maxIndex = totalSlides - 1;
+
+        return (
           <>
-            <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob"></div>
-            <div className="absolute bottom-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animate-delay-2000"></div>
-          </>
-        )}
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 md:mb-16 relative z-10">
-            <div className={`inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/30 text-indigo-100 mb-6 ${!shouldReduceMotion ? 'animate-fade-in' : ''}`}>
-              <span className={`flex h-2 w-2 rounded-full bg-indigo-300 ${!shouldReduceMotion ? 'animate-pulse' : ''} mr-2`}></span>
-              <span className="text-sm font-medium">Student Testimonials</span>
-            </div>
-            <h2 id="testimonials-heading" className="text-2xl md:text-4xl font-bold mb-2 md:mb-4 text-white">What Our Students Say</h2>
-            <p className="text-base md:text-xl text-indigo-200/80 max-w-2xl mx-auto">Join thousands of satisfied learners who've transformed their careers with our courses</p>
-          </div>
-          
-          {/* Modern testimonial slider with enhanced UI */}
-          <div className="relative max-w-6xl mx-auto px-0 sm:px-6">
-            {/* Main slider container with minimal design */}
-            <div className="relative overflow-hidden rounded-lg bg-black/20 p-0 sm:p-4">
-              {/* Clean design without decorative elements */}
-              
-              {/* Slider track */}
-              <div 
-                ref={testimonialSliderRef}
-                className="overflow-hidden relative rounded-lg"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-              >
+            {/* Modern testimonial slider with enhanced UI */}
+            <div className="relative max-w-6xl mx-auto px-0 sm:px-6">
+              {/* Main slider container with minimal design */}
+              <div className="relative overflow-hidden rounded-lg bg-black/20 p-0 sm:p-4">
+                {/* Slider track */}
                 <div 
-                  className="flex transition-transform duration-700 ease-out"
-                  style={{ transform: `translateX(-${currentTestimonialIndex * 100}%)` }}
+                  ref={testimonialSliderRef}
+                  className="overflow-hidden relative rounded-lg"
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                 >
-                  {[
-                    {
-                      quote: "Genius transformed my understanding of complex algorithms. The interactive labs make learning both fun and effective.",
-                      name: "Rahul Sharma",
-                      role: "CS Student, IIT Delhi",
-                      avatar: "/images/testimonials/user1.webp",
-                      color: "indigo"
-                    },
-                    {
-                      quote: "The AI-powered feedback helped me identify gaps in my knowledge. I've improved drastically in just 3 months.",
-                      name: "Priya Kapoor",
-                      role: "ECE Student, BITS Pilani",
-                      avatar: "/images/testimonials/user2.webp",
-                      color: "purple"
-                    },
-                    {
-                      quote: "The community support is amazing. I found study partners and mentors who helped me excel in my courses.",
-                      name: "Amit Verma",
-                      role: "ME Student, NIT Trichy",
-                      avatar: "/images/testimonials/user3.webp",
-                      color: "pink"
-                    },
-                    {
-                      quote: "The personalized learning path helped me focus on areas where I needed improvement. The results speak for themselves!",
-                      name: "Ananya Patel",
-                      role: "CSE Student, VIT Vellore",
-                      avatar: "/images/testimonials/user1.webp",
-                      color: "indigo"
-                    },
-                    {
-                      quote: "As someone who struggled with programming, Genius.AI's step-by-step approach made complex concepts accessible.",
-                      name: "Vikram Singh",
-                      role: "IT Student, IIIT Hyderabad",
-                      avatar: "/images/testimonials/user2.webp",
-                      color: "purple"
-                    },
-                    {
-                      quote: "The practice problems and real-world projects helped me build a portfolio that impressed recruiters during my internship search.",
-                      name: "Neha Gupta",
-                      role: "ECE Student, DTU Delhi",
-                      avatar: "/images/testimonials/user3.webp",
-                      color: "pink"
-                    }
-                  ].map((testimonial, index) => (
-                    <div 
-                      key={index} 
-                      className="min-w-full sm:min-w-[85%] md:min-w-[33.333%] px-0 sm:px-1 py-0 sm:py-1"
-                    >
+                  <div 
+                    className="flex transition-transform duration-700 ease-out"
+                    style={{ transform: `translateX(-${currentTestimonialIndex * 100}%)` }}
+                  >
+                    {testimonials.map((testimonial, index) => (
                       <div 
-                        className={`h-full bg-black/80 rounded-lg relative group overflow-hidden transition-all duration-300 ${!isMobileDevice ? 'hover:-translate-y-1' : ''}`}
+                        key={index} 
+                        className="min-w-full sm:min-w-[85%] md:min-w-[33.333%] px-0 sm:px-1 py-0 sm:py-1"
                       >
-                        {/* Color accent bar above the testimonial */}
-                        <div className={`absolute top-0 left-0 right-0 h-1 ${testimonial.color === 'indigo' ? 'bg-gradient-to-r from-indigo-600 to-indigo-400' : testimonial.color === 'purple' ? 'bg-gradient-to-r from-purple-600 to-purple-400' : 'bg-gradient-to-r from-pink-600 to-pink-400'}`}></div>
-                        
-                        <div className="p-2 sm:p-4 h-full relative z-10">
-                          {/* Minimal rating display */}
-                          <div className="flex items-center mb-1 sm:mb-3">
-                            <div className="text-yellow-400 text-xs sm:text-sm">★★★★★</div>
-                            <span className="text-gray-500 text-xs ml-1">5.0</span>
-                          </div>
+                        <div 
+                          className={`h-full bg-black/80 rounded-lg relative group overflow-hidden transition-all duration-300 ${!isMobileDevice ? 'hover:-translate-y-1' : ''}`}
+                        >
+                          {/* Color accent bar above the testimonial */}
+                          <div className={`absolute top-0 left-0 right-0 h-1 ${testimonial.color === 'indigo' ? 'bg-gradient-to-r from-indigo-600 to-indigo-400' : testimonial.color === 'purple' ? 'bg-gradient-to-r from-purple-600 to-purple-400' : 'bg-gradient-to-r from-pink-600 to-pink-400'}`}></div>
                           
-                          {/* Compact quote with clean styling */}
-                          <div className="mb-2 sm:mb-4">
-                            <p className="text-white text-xs sm:text-sm leading-relaxed">
-                              "{testimonial.quote}"
-                            </p>
-                          </div>
-                          
-                          {/* Compact user profile layout */}
-                          <div className="flex items-center pt-1 mt-1 sm:pt-3 sm:mt-3 border-t border-gray-800/30">
-                            <div className="mr-2 sm:mr-3">
-                              <img 
-                                src={testimonial.avatar} 
-                                alt={testimonial.name} 
-                                className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
-                                loading="lazy"
-                              />
+                          <div className="p-2 sm:p-4 h-full relative z-10">
+                            {/* Minimal rating display */}
+                            <div className="flex items-center mb-1 sm:mb-3">
+                              <div className="text-yellow-400 text-xs sm:text-sm">★★★★★</div>
+                              <span className="text-gray-500 text-xs ml-1">5.0</span>
                             </div>
-                            <div>
-                              <div className="font-medium text-white text-xs sm:text-sm">{testimonial.name}</div>
-                              <div className="text-xs text-gray-400">{testimonial.role}</div>
+                            
+                            {/* Compact quote with clean styling */}
+                            <div className="mb-2 sm:mb-4">
+                              <p className="text-white text-xs sm:text-sm leading-relaxed">
+                                "{testimonial.quote}"
+                              </p>
+                            </div>
+                            
+                            {/* Compact user profile layout */}
+                            <div className="flex items-center pt-1 mt-1 sm:pt-3 sm:mt-3 border-t border-gray-800/30">
+                              <div className="mr-2 sm:mr-3">
+                                <img 
+                                  src={testimonial.avatar} 
+                                  alt={testimonial.name} 
+                                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
+                                  loading="lazy"
+                                />
+                              </div>
+                              <div>
+                                <div className="font-medium text-white text-xs sm:text-sm">{testimonial.name}</div>
+                                <div className="text-xs text-gray-400">{testimonial.role}</div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Navigation arrows */}
+                <button 
+                  onClick={() => setCurrentTestimonialIndex(prev => Math.max(0, prev - 1))} 
+                  disabled={currentTestimonialIndex === 0}
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 h-full flex items-center justify-center px-1 sm:px-2 ${currentTestimonialIndex === 0 ? 'opacity-0 cursor-default' : 'opacity-70 hover:opacity-100'} transition-opacity duration-300`}
+                  aria-label="Previous testimonials"
+                >
+                  <span className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-black/60 rounded text-white">
+                    <ChevronLeft className="w-4 h-4" />
+                  </span>
+                </button>
+                
+                <button 
+                  onClick={() => setCurrentTestimonialIndex(prev => Math.min(maxIndex, prev + 1))}
+                  disabled={currentTestimonialIndex === maxIndex} 
+                  className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 h-full flex items-center justify-center px-1 sm:px-2 ${currentTestimonialIndex === maxIndex ? 'opacity-0 cursor-default' : 'opacity-70 hover:opacity-100'} transition-opacity duration-300`}
+                  aria-label="Next testimonials"
+                >
+                  <span className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-black/60 rounded text-white">
+                    <ChevronRight className="w-4 h-4" />
+                  </span>
+                </button>
+              </div>
+              
+              {/* Pagination indicators - only visible on desktop */}
+              {!isMobileDevice && (
+                <div className="flex justify-center items-center mt-4 space-x-3">
+                  {Array.from({ length: totalSlides }, (_, pageIndex) => (
+                    <button 
+                      key={pageIndex} 
+                      onClick={() => setCurrentTestimonialIndex(pageIndex)}
+                      className={`${currentTestimonialIndex === pageIndex ? 
+                        'w-4 bg-gradient-to-r from-indigo-600 to-violet-600' : 
+                        'w-1.5 bg-gray-700 hover:bg-gray-600'} 
+                        h-1.5 rounded-full transition-all duration-300`}
+                      aria-label={`Go to testimonial page ${pageIndex + 1}`}
+                    />
                   ))}
                 </div>
-              </div>
-              
-              {/* Slim navigation arrows for mobile */}
-              <button 
-                onClick={() => setCurrentTestimonialIndex(prev => Math.max(0, prev - 1))} 
-                disabled={currentTestimonialIndex === 0}
-                className={`absolute left-0 top-1/2 -translate-y-1/2 z-20 h-full flex items-center justify-center px-1 sm:px-2 ${currentTestimonialIndex === 0 ? 'opacity-0 cursor-default' : 'opacity-70 hover:opacity-100'} transition-opacity duration-300`}
-                aria-label="Previous testimonials"
-              >
-                <span className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-black/60 rounded text-white">
-                  <ChevronLeft className="w-4 h-4" />
-                </span>
-              </button>
-              
-              <button 
-                onClick={() => setCurrentTestimonialIndex(prev => Math.min(3, prev + 1))}
-                disabled={currentTestimonialIndex === 3} 
-                className={`absolute right-0 top-1/2 -translate-y-1/2 z-20 h-full flex items-center justify-center px-1 sm:px-2 ${currentTestimonialIndex === 3 ? 'opacity-0 cursor-default' : 'opacity-70 hover:opacity-100'} transition-opacity duration-300`}
-                aria-label="Next testimonials"
-              >
-                <span className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center bg-black/60 rounded text-white">
-                  <ChevronRight className="w-4 h-4" />
-                </span>
-              </button>
+              )}
             </div>
-            
-            {/* Pagination indicators - only visible on desktop */}
-            {!isMobileDevice && (
-              <div className="flex justify-center items-center mt-4 space-x-3">
-                {[0, 1, 2, 3].map(pageIndex => (
-                  <button 
-                    key={pageIndex} 
-                    onClick={() => setCurrentTestimonialIndex(pageIndex)}
-                    className={`${currentTestimonialIndex === pageIndex ? 
-                      'w-4 bg-gradient-to-r from-indigo-600 to-violet-600' : 
-                      'w-1.5 bg-gray-700 hover:bg-gray-600'} 
-                      h-1.5 rounded-full transition-all duration-300`}
-                    aria-label={`Go to testimonial page ${pageIndex + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
+          </>
+        );
+      })()}
+  </div>
+</section>
       {/* CTA Section - simplified */}
       <section id="cta" className="py-20 md:py-28 bg-gradient-to-br from-black via-gray-950/95 to-black relative overflow-hidden" aria-labelledby="cta-heading">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/10 via-violet-950/5 to-transparent pointer-events-none" aria-hidden="true"></div>
@@ -685,11 +695,11 @@ export default function Home() {
                 Start Free Trial
               </Link>
               <Link
-                to="/courses"
+                to="/Products"
                 className="px-8 md:px-10 py-4 md:py-5 bg-transparent text-white border-2 border-white rounded-xl text-base md:text-lg font-bold hover:bg-white/10 transition-all duration-300"
-                aria-label="Browse all courses"
+                aria-label="Browse all Products"
               >
-                Browse Courses
+                Browse Products
               </Link>
             </div>
           </div>  

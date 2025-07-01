@@ -3,85 +3,122 @@ import {
   Search,
   ChevronDown,
   Star,
-  BookOpen,
+  Layers,
   X,
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
+  Code,
+  Users,
+  Bot,
+  Activity,
+  Linkedin,
 } from "lucide-react";
 import { isSlowDevice, useReducedMotion } from "../utils/deviceDetection";
 import { useTheme } from "../context/useTheme";
-import type { Course } from "../types";
-import "./Courses.css"; // Import the CSS file with animations
+import type { Product } from "../types";
+import "./Products.css"; // Import the CSS file with animations
 
-const COURSES: Course[] = [
+const PRODUCTS: Product[] = [
   {
-    id: "cs-5",
-    title: "Python Programming",
+    id: "code-playground",
+    title: "Code Playground",
     description:
-      "Learn Python from basics to advanced concepts with practical projects and applications.",
-    instructor: "Dr. Maya Patel",
-    thumbnail: "/images/courses/courses1.webp",
-    duration: "12 weeks",
-    level: "Beginner",
-    category: "cs",
+      "Interactive coding environment with real-time collaboration, syntax highlighting, and multi-language support.",
+    category: "development",
+    thumbnail: "/images/products/code-playground.webp",
+    pricing: "Free",
+    tier: "Free",
     rating: 4.9,
-    students: 2800,
+    users: 15000,
+    features: ["Real-time collaboration", "Multi-language support", "Live preview", "Version control"],
+    icon: Code,
   },
   {
-    id: "science-1",
-    title: "Applied Physics",
+    id: "faculty-dashboard",
+    title: "Faculty Dashboard",
     description:
-      "Explore real-world applications of physics principles through experiments and simulations.",
-    instructor: "Prof. Richard Feynman",
-    thumbnail: "/images/courses/courses2.webp",
-    duration: "14 weeks",
-    level: "Intermediate",
-    category: "science",
-    rating: 4.7,
-    students: 950,
-  },
-  {
-    id: "math-1",
-    title: "Mathematics 2",
-    description:
-      "Advanced mathematical concepts including calculus, linear algebra, and differential equations.",
-    instructor: "Dr. Katherine Johnson",
-    thumbnail: "/images/courses/courses3.webp",
-    duration: "16 weeks",
-    level: "Advanced",
-    category: "math",
+      "Comprehensive analytics and management platform for educational institutions and faculty members.",
+    category: "education",
+    thumbnail: "/images/products/faculty-dashboard.webp",
+    pricing: "$29/month",
+    tier: "Pro",
     rating: 4.8,
-    students: 1100,
+    users: 2800,
+    features: ["Student analytics", "Grade management", "Progress tracking", "Reporting tools"],
+    icon: Users,
+  },
+  {
+    id: "digital-clone",
+    title: "Digital Clone",
+    description:
+      "AI-powered digital twin technology for creating intelligent virtual representations and interactions.",
+    category: "ai",
+    thumbnail: "/images/products/digital-clone.webp",
+    pricing: "$99/month",
+    tier: "Enterprise",
+    rating: 4.7,
+    users: 950,
+    features: ["AI personality modeling", "Voice synthesis", "Behavioral patterns", "Custom training"],
+    icon: Bot,
+  },
+  {
+    id: "pulse",
+    title: "Pulse",
+    description:
+      "Real-time monitoring and analytics platform for tracking system performance and user engagement.",
+    category: "analytics",
+    thumbnail: "/images/products/pulse.webp",
+    pricing: "$49/month",
+    tier: "Pro",
+    rating: 4.8,
+    users: 1100,
+    features: ["Real-time monitoring", "Custom dashboards", "Alert system", "Performance metrics"],
+    icon: Activity,
+  },
+  {
+    id: "linkedin-automation",
+    title: "LinkedIn Automation",
+    description:
+      "Intelligent automation tools for LinkedIn networking, lead generation, and professional growth.",
+    category: "automation",
+    thumbnail: "/images/products/linkedin-automation.webp",
+    pricing: "$79/month",
+    tier: "Pro",
+    rating: 4.6,
+    users: 3200,
+    features: ["Auto messaging", "Lead generation", "Connection management", "Analytics dashboard"],
+    icon: Linkedin,
   },
 ] as const;
 
-const LEVELS = ["All Levels", "Beginner", "Intermediate", "Advanced"];
-const DURATIONS = [
-  "All Durations",
-  "8 weeks",
-  "10 weeks",
-  "12 weeks",
-  "14 weeks",
-  "16 weeks",
+const TIERS = ["All Tiers", "Free", "Pro", "Enterprise"];
+const PRICING_RANGES = [
+  "All Pricing",
+  "Free",
+  "$1-50/month",
+  "$51-100/month",
+  "$100+/month",
 ];
 const CATEGORIES = [
-  { value: "all", label: "All Courses" },
-  { value: "cs", label: "Computer Science" },
-  { value: "science", label: "Science" },
-  { value: "math", label: "Mathematics" },
+  { value: "all", label: "All Products" },
+  { value: "development", label: "Development" },
+  { value: "education", label: "Education" },
+  { value: "ai", label: "AI & Machine Learning" },
+  { value: "analytics", label: "Analytics" },
+  { value: "automation", label: "Automation" },
 ];
 
-export default function Courses() {
+export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedLevel, setSelectedLevel] = useState("All Levels");
-  const [selectedDuration, setSelectedDuration] = useState("All Durations");
+  const [selectedTier, setSelectedTier] = useState("All Tiers");
+  const [selectedPricing, setSelectedPricing] = useState("All Pricing");
   const [searchQuery, setSearchQuery] = useState("");
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
   const [activeFilters, setActiveFilters] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const coursesPerPage = 6; // Number of courses to display per page
+  const productsPerPage = 6; // Number of products to display per page
 
   // Get theme context
   const { theme } = useTheme();
@@ -97,10 +134,10 @@ export default function Courses() {
   useEffect(() => {
     let count = 0;
     if (selectedCategory !== "all") count++;
-    if (selectedLevel !== "All Levels") count++;
-    if (selectedDuration !== "All Durations") count++;
+    if (selectedTier !== "All Tiers") count++;
+    if (selectedPricing !== "All Pricing") count++;
     setActiveFilters(count);
-  }, [selectedCategory, selectedLevel, selectedDuration]);
+  }, [selectedCategory, selectedTier, selectedPricing]);
 
   // Toggle filters visibility
   const toggleFilters = () => {
@@ -110,8 +147,8 @@ export default function Courses() {
   // Reset all filters
   const resetFilters = () => {
     setSelectedCategory("all");
-    setSelectedLevel("All Levels");
-    setSelectedDuration("All Durations");
+    setSelectedTier("All Tiers");
+    setSelectedPricing("All Pricing");
   };
 
   // Clear search
@@ -119,44 +156,63 @@ export default function Courses() {
     setSearchQuery("");
   };
 
-  const filteredCourses = useMemo(() => {
-    return COURSES.filter((course) => {
+  // Helper function to check pricing range
+  const matchesPricingRange = (productPricing: string, selectedRange: string) => {
+    if (selectedRange === "All Pricing") return true;
+    if (selectedRange === "Free") return productPricing === "Free";
+    if (selectedRange === "$1-50/month") {
+      const price = parseInt(productPricing.replace(/[^\d]/g, ''));
+      return price >= 1 && price <= 50;
+    }
+    if (selectedRange === "$51-100/month") {
+      const price = parseInt(productPricing.replace(/[^\d]/g, ''));
+      return price >= 51 && price <= 100;
+    }
+    if (selectedRange === "$100+/month") {
+      const price = parseInt(productPricing.replace(/[^\d]/g, ''));
+      return price > 100;
+    }
+    return false;
+  };
+
+  const filteredProducts = useMemo(() => {
+    return PRODUCTS.filter((product) => {
       const matchesCategory =
-        selectedCategory === "all" || course.category === selectedCategory;
-      const matchesLevel =
-        selectedLevel === "All Levels" || course.level === selectedLevel;
-      const matchesDuration =
-        selectedDuration === "All Durations" ||
-        course.duration === selectedDuration;
+        selectedCategory === "all" || product.category === selectedCategory;
+      const matchesTier =
+        selectedTier === "All Tiers" || product.tier === selectedTier;
+      const matchesPricing = matchesPricingRange(product.pricing, selectedPricing);
       const matchesSearch =
         searchQuery === "" ||
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.features.some(feature => 
+          feature.toLowerCase().includes(searchQuery.toLowerCase())
+        );
       return (
-        matchesCategory && matchesLevel && matchesDuration && matchesSearch
+        matchesCategory && matchesTier && matchesPricing && matchesSearch
       );
     });
-  }, [selectedCategory, selectedLevel, selectedDuration, searchQuery]);
+  }, [selectedCategory, selectedTier, selectedPricing, searchQuery]);
 
   // Calculate pagination values
-  const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  // Get current courses
-  const currentCourses = useMemo(() => {
-    const indexOfLastCourse = currentPage * coursesPerPage;
-    const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
-    return filteredCourses.slice(indexOfFirstCourse, indexOfLastCourse);
-  }, [filteredCourses, currentPage, coursesPerPage]);
+  // Get current products
+  const currentProducts = useMemo(() => {
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    return filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  }, [filteredProducts, currentPage, productsPerPage]);
 
   // Handle page changes
   const handlePageChange = (pageNumber: number) => {
     // Ensure page number is within valid range
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      // Scroll to top of courses section with smooth behavior
+      // Scroll to top of products section with smooth behavior
       document
-        .getElementById("courses-section")
+        .getElementById("products-section")
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
@@ -164,7 +220,7 @@ export default function Courses() {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, selectedLevel, selectedDuration, searchQuery]);
+  }, [selectedCategory, selectedTier, selectedPricing, searchQuery]);
 
   return (
     <main
@@ -179,7 +235,7 @@ export default function Courses() {
         className="relative overflow-hidden pt-16 md:pt-24 pb-12 md:pb-16"
         style={{ background: "var(--header-bg)" }}
       >
-        <div className="absolute inset-0 bg-[url('/images/courses/courses_hero.webp')] opacity-10 bg-cover bg-center"></div>
+        <div className="absolute inset-0 bg-[url('/images/products/products_hero.webp')] opacity-10 bg-cover bg-center"></div>
         {/* Static gradient background on mobile, animated on desktop */}
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -199,7 +255,7 @@ export default function Courses() {
                 } mr-2`}
               ></span>
               <span className="text-xs md:text-sm font-medium">
-                Expert-led curriculum
+                Innovation-driven solutions
               </span>
             </div>
             <h1
@@ -207,7 +263,7 @@ export default function Courses() {
                 !shouldReduceMotion ? "animate-fade-in animate-delay-100" : ""
               } drop-shadow-lg`}
             >
-              Explore Our Courses
+              Explore Our Products
             </h1>
             <p
               className={`text-lg md:text-xl max-w-3xl ${
@@ -216,8 +272,8 @@ export default function Courses() {
                 !shouldReduceMotion ? "animate-fade-in animate-delay-200" : ""
               }`}
             >
-              Discover comprehensive courses designed to help you master new
-              skills and advance your career.
+              Discover cutting-edge products designed to enhance productivity,
+              streamline workflows, and drive innovation across industries.
             </p>
           </div>
         </div>
@@ -244,7 +300,7 @@ export default function Courses() {
               </div>
               <input
                 type="text"
-                placeholder="Search for courses..."
+                placeholder="Search for products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={`w-full h-full py-4 pl-3 pr-12 bg-transparent ${
@@ -312,22 +368,22 @@ export default function Courses() {
                 </div>
               </div>
 
-              {/* Level Filter */}
+              {/* Tier Filter */}
               <div
                 className={`relative border-b sm:border-b-0 sm:border-r ${
                   theme === "dark" ? "border-gray-800" : "border-gray-200"
                 }`}
               >
                 <select
-                  value={selectedLevel}
-                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  value={selectedTier}
+                  onChange={(e) => setSelectedTier(e.target.value)}
                   className={`w-full h-14 md:h-16 appearance-none bg-transparent ${
                     theme === "dark" ? "text-white" : "text-slate-900"
                   } px-4 py-2 focus:outline-none cursor-pointer`}
                 >
-                  {LEVELS.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
+                  {TIERS.map((tier) => (
+                    <option key={tier} value={tier}>
+                      {tier}
                     </option>
                   ))}
                 </select>
@@ -336,22 +392,22 @@ export default function Courses() {
                 </div>
               </div>
 
-              {/* Duration Filter */}
+              {/* Pricing Filter */}
               <div
                 className={`relative border-b sm:border-b-0 ${
                   theme === "dark" ? "border-gray-800" : "border-gray-200"
                 }`}
               >
                 <select
-                  value={selectedDuration}
-                  onChange={(e) => setSelectedDuration(e.target.value)}
+                  value={selectedPricing}
+                  onChange={(e) => setSelectedPricing(e.target.value)}
                   className={`w-full h-14 md:h-16 appearance-none bg-transparent ${
                     theme === "dark" ? "text-white" : "text-slate-900"
                   } px-4 py-2 focus:outline-none cursor-pointer`}
                 >
-                  {DURATIONS.map((duration) => (
-                    <option key={duration} value={duration}>
-                      {duration}
+                  {PRICING_RANGES.map((pricing) => (
+                    <option key={pricing} value={pricing}>
+                      {pricing}
                     </option>
                   ))}
                 </select>
@@ -364,7 +420,6 @@ export default function Courses() {
         </div>
 
         {/* Minimalistic Filter Chips */}
-        {/* Fixed Filter Chips Section with Consistent Layout and Spacing */}
         {activeFilters > 0 && (
           <div className="flex flex-wrap items-center gap-2 mt-4 mb-2">
             {selectedCategory !== "all" && (
@@ -394,7 +449,7 @@ export default function Courses() {
               </div>
             )}
 
-            {selectedLevel !== "All Levels" && (
+            {selectedTier !== "All Tiers" && (
               <div
                 className={`inline-flex items-center h-10 px-3 ${
                   theme === "dark"
@@ -407,19 +462,19 @@ export default function Courses() {
                     theme === "dark" ? "text-gray-200" : "text-gray-700"
                   } mr-2`}
                 >
-                  {selectedLevel}
+                  {selectedTier}
                 </span>
                 <button
-                  onClick={() => setSelectedLevel("All Levels")}
+                  onClick={() => setSelectedTier("All Tiers")}
                   className={`text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none`}
-                  aria-label={`Remove ${selectedLevel} filter`}
+                  aria-label={`Remove ${selectedTier} filter`}
                 >
                   <X className="h-3.5 w-3.5 text-gray-400" />
                 </button>
               </div>
             )}
 
-            {selectedDuration !== "All Durations" && (
+            {selectedPricing !== "All Pricing" && (
               <div
                 className={`inline-flex items-center h-10 px-3 ${
                   theme === "dark"
@@ -432,12 +487,12 @@ export default function Courses() {
                     theme === "dark" ? "text-gray-200" : "text-gray-700"
                   } mr-2`}
                 >
-                  {selectedDuration}
+                  {selectedPricing}
                 </span>
                 <button
-                  onClick={() => setSelectedDuration("All Durations")}
+                  onClick={() => setSelectedPricing("All Pricing")}
                   className={`text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none`}
-                  aria-label={`Remove ${selectedDuration} filter`}
+                  aria-label={`Remove ${selectedPricing} filter`}
                 >
                   <X className="h-3.5 w-3.5 text-gray-400" />
                 </button>
@@ -465,32 +520,41 @@ export default function Courses() {
           </div>
         )}
       </div>
-      {/* Course Grid */}
+
+      {/* Product Grid */}
       <section
-        id="courses-section"
+        id="products-section"
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16"
       >
-        {filteredCourses.length > 0 && (
+        {filteredProducts.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {currentCourses.map((course, index) => {
+            {currentProducts.map((product, index) => {
               let categoryLabel;
               let categoryClass;
 
-              switch (course.category) {
-                case "cs":
-                  categoryLabel = "Computer Science";
+              switch (product.category) {
+                case "development":
+                  categoryLabel = "Development";
                   categoryClass = "bg-indigo-500/90";
                   break;
-                case "science":
-                  categoryLabel = "Science";
+                case "education":
+                  categoryLabel = "Education";
                   categoryClass = "bg-emerald-500/90";
                   break;
-                case "math":
-                  categoryLabel = "Mathematics";
+                case "ai":
+                  categoryLabel = "AI & ML";
                   categoryClass = "bg-violet-500/90";
                   break;
+                case "analytics":
+                  categoryLabel = "Analytics";
+                  categoryClass = "bg-orange-500/90";
+                  break;
+                case "automation":
+                  categoryLabel = "Automation";
+                  categoryClass = "bg-blue-500/90";
+                  break;
                 default:
-                  categoryLabel = "Course";
+                  categoryLabel = "Product";
                   categoryClass = "bg-indigo-500/90";
               }
 
@@ -499,10 +563,11 @@ export default function Courses() {
               const applyWillChange = index < 3;
               const isMobileDevice = isSlowDevice();
               const transitionDuration = isMobileDevice ? "200ms" : "300ms";
+              const IconComponent = product.icon;
 
               return (
                 <div
-                  key={course.id}
+                  key={product.id}
                   className="group relative rounded-2xl overflow-hidden bg-black/70 backdrop-blur-sm md:backdrop-blur-xl border border-gray-800/50 md:hover:border-indigo-500/50 transition-colors shadow-md md:shadow-lg"
                   style={
                     applyWillChange && !isMobileDevice
@@ -517,8 +582,8 @@ export default function Courses() {
                   <div className="relative">
                     <div className="relative h-48 overflow-hidden">
                       <img
-                        src={course.thumbnail}
-                        alt={course.title}
+                        src={product.thumbnail}
+                        alt={product.title}
                         className={`w-full h-full object-cover ${
                           !isMobileDevice
                             ? "transform group-hover:scale-105 transition-transform"
@@ -543,72 +608,90 @@ export default function Courses() {
                       </div>
                       <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
                         <span className="px-2 py-1 bg-white/10 text-white text-xs font-medium rounded-full">
-                          {course.level}
+                          {product.tier}
                         </span>
                         <span className="px-2 py-1 bg-white/10 text-white text-xs font-medium rounded-full">
-                          {course.duration}
+                          {product.pricing}
                         </span>
                       </div>
                     </div>
 
                     <div className="p-4 md:p-6">
-                      {/* Simplified tags for mobile */}
-                      <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                        <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-300 text-xs font-medium rounded-full">
-                          {course.category.toUpperCase()}
-                        </span>
+                      {/* Product icon and title */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                          <IconComponent className="w-4 h-4 text-white" />
+                        </div>
+                        <h3
+                          className={`text-lg font-bold text-white ${
+                            !isMobileDevice
+                              ? "group-hover:text-indigo-400 transition-colors"
+                              : ""
+                          }`}
+                        >
+                          {product.title}
+                        </h3>
                       </div>
 
-                      <h3
-                        className={`text-lg font-bold text-white mb-2 ${
-                          !isMobileDevice
-                            ? "group-hover:text-indigo-400 transition-colors"
-                            : ""
-                        }`}
-                      >
-                        {course.title}
-                      </h3>
                       <p className="text-sm text-slate-300 mb-4 line-clamp-2">
-                        {course.description}
+                        {product.description}
                       </p>
 
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-xs mr-2">
-                            {course.instructor.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="text-xs font-medium text-white">
-                              {course.instructor}
-                            </div>
-                            <div className="text-xs text-slate-400">
-                              Instructor
-                            </div>
-                          </div>
+                      {/* Features list */}
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-1">
+                          {product.features.slice(0, 3).map((feature, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-indigo-500/10 text-indigo-300 text-xs rounded-full"
+                            >
+                              {feature}
+                            </span>
+                          ))}
+                          {product.features.length > 3 && (
+                            <span className="px-2 py-1 bg-gray-500/10 text-gray-400 text-xs rounded-full">
+                              +{product.features.length - 3} more
+                            </span>
+                          )}
                         </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-1">
                           <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                           <span className="text-sm text-white font-medium">
-                            {course.rating}
+                            {product.rating}
                           </span>
                           <span className="text-xs text-slate-400">
-                            ({course.students})
+                            ({product.users.toLocaleString()} users)
                           </span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text">
+                            {product.pricing}
+                          </div>
+                          <div className="text-xs text-slate-400">{product.tier}</div>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
-                        <div className="text-xl font-bold text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text">
-                          ${Math.floor(Math.random() * 100) + 99}
-                        </div>
                         <button
-                          className={`px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm rounded-lg ${
+                          className={`flex-1 mr-2 px-4 py-2 bg-gray-700/50 text-white text-sm rounded-lg ${
+                            !isMobileDevice
+                              ? "hover:bg-gray-600/50 transition-colors"
+                              : ""
+                          } font-medium`}
+                        >
+                          Learn More
+                        </button>
+                        <button
+                          className={`flex-1 ml-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm rounded-lg ${
                             !isMobileDevice
                               ? "hover:from-indigo-700 hover:to-violet-700 transition-colors"
                               : ""
                           } font-semibold shadow-md`}
                         >
-                          Enroll Now
+                          {product.pricing === "Free" ? "Get Started" : "Try Free"}
                         </button>
                       </div>
                     </div>
@@ -618,6 +701,7 @@ export default function Courses() {
             })}
           </div>
         )}
+
         {/* Pagination - Modern and minimalistic design */}
         {totalPages > 1 && (
           <div className="mt-16 mb-2 flex justify-center px-4">
@@ -748,20 +832,20 @@ export default function Courses() {
         )}
 
         {/* No results message */}
-        {filteredCourses.length === 0 && (
+        {filteredProducts.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <div className="w-16 h-16 mb-6 rounded-full bg-indigo-600/20 flex items-center justify-center">
-              <BookOpen className="h-8 w-8 text-indigo-400" />
+              <Layers className="h-8 w-8 text-indigo-400" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No courses found</h3>
+            <h3 className="text-xl font-semibold mb-2">No products found</h3>
             <p className="text-gray-400 max-w-md">
-              Try adjusting your search or filter criteria to find more courses.
+              Try adjusting your search or filter criteria to find more products.
             </p>
             <button
               onClick={() => {
                 setSelectedCategory("all");
-                setSelectedLevel("All Levels");
-                setSelectedDuration("All Durations");
+                setSelectedTier("All Tiers");
+                setSelectedPricing("All Pricing");
                 setSearchQuery("");
               }}
               className="mt-6 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900"
