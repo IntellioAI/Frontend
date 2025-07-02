@@ -9,6 +9,7 @@ interface EditorPaneProps {
   cssCode: string;
   jsCode: string;
   runCode: () => void;
+  autoRun: boolean;
   layout: 'split' | 'editor' | 'preview';
   handleEditorDidMount: (editor: editor.IStandaloneCodeEditor) => void;
   handleEditorChange: (value: string | undefined) => void;
@@ -22,6 +23,7 @@ const EditorPane: React.FC<EditorPaneProps> = ({
   cssCode,
   jsCode,
   runCode,
+  autoRun,
   layout,
   handleEditorDidMount,
   handleEditorChange,
@@ -115,24 +117,32 @@ const EditorPane: React.FC<EditorPaneProps> = ({
         </div>
         
         <div className="flex items-center space-x-2 px-4">
-          <div className="flex items-center space-x-1 text-xs text-gray-500">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span>Live</span>
+          <div className={`flex items-center space-x-1.5 text-xs transition-colors duration-200 ${
+            autoRun 
+              ? 'text-green-600' 
+              : 'text-gray-400'
+          }`}>
+            <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${
+              autoRun 
+                ? 'bg-green-500' 
+                : 'bg-gray-300'
+            }`}></div>
+            <span className="font-medium">Live</span>
           </div>
           
           <div className="w-px h-4 bg-gray-300"></div>
           
-          <button
-            onClick={runCode}
-            className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h1m4 0h1M9 6h6a2 2 0 012 2v8a2 2 0 01-2 2H9a2 2 0 01-2-2V8a2 2 0 012-2z" />
-            </svg>
-            <span>Run</span>
-          </button>
+          {!autoRun && (
+            <button
+              onClick={runCode}
+              className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h1m4 0h1M9 6h6a2 2 0 012 2v8a2 2 0 01-2 2H9a2 2 0 01-2-2V8a2 2 0 012-2z" />
+              </svg>
+              <span>Run</span>
+            </button>
+          )}
         </div>
       </div>
 

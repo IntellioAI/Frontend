@@ -7,6 +7,7 @@ interface PlaygroundHeaderProps {
   setLayout: (layout: 'split' | 'editor' | 'preview') => void;
   showConsole: boolean;
   setShowConsole: (value: boolean) => void;
+
 }
 
 const PlaygroundHeader: React.FC<PlaygroundHeaderProps> = ({
@@ -15,8 +16,10 @@ const PlaygroundHeader: React.FC<PlaygroundHeaderProps> = ({
   layout,
   setLayout,
   showConsole,
-  setShowConsole
+  setShowConsole,
 }) => {
+  
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
       <div className="flex justify-between items-center">

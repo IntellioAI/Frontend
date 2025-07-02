@@ -99,17 +99,20 @@ document.addEventListener('DOMContentLoaded', function() {
   const [livePreview, setLivePreview] = useState<string>('');
   const [showConsole, setShowConsole] = useState(true);
   
-  // Resizer states
+  // Resizer states - Fixed for smooth resizing
   const [isResizing, setIsResizing] = useState(false);
   const [resizeType, setResizeType] = useState<'horizontal' | 'vertical' | null>(null);
   const [editorWidth, setEditorWidth] = useState(50); // percentage
   const [consoleHeight, setConsoleHeight] = useState(200); // pixels
+  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
+  const [startDimensions, setStartDimensions] = useState({ width: 50, height: 200 });
 
   // Refs
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const playgroundRef = useRef<HTMLDivElement>(null);
+  const autoRunTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize client-side
   useEffect(() => {
@@ -144,36 +147,46 @@ document.addEventListener('DOMContentLoaded', function() {
   const handleEditorChange = (value: string | undefined) => {
     if (value === undefined) return;
     setEditorValue(value);
-    // Auto-run is now handled in useEffect with debouncing
   };
 
-  // Resizer handlers
+  // Improved resizer handlers with smooth movement
   const handleHorizontalResize = useCallback((e: MouseEvent) => {
     if (resizeType !== 'horizontal' || !playgroundRef.current) return;
     
+    e.preventDefault();
     const rect = playgroundRef.current.getBoundingClientRect();
-    const newWidth = ((e.clientX - rect.left) / rect.width) * 100;
-    setEditorWidth(Math.max(25, Math.min(75, newWidth)));
-  }, [resizeType]);
+    const deltaX = e.clientX - startPosition.x;
+    const containerWidth = rect.width;
+    const deltaPercent = (deltaX / containerWidth) * 100;
+    const newWidth = startDimensions.width + deltaPercent;
+    
+    setEditorWidth(Math.max(20, Math.min(80, newWidth)));
+  }, [resizeType, startPosition.x, startDimensions.width]);
 
   const handleVerticalResize = useCallback((e: MouseEvent) => {
     if (resizeType !== 'vertical' || !playgroundRef.current) return;
     
-    const rect = playgroundRef.current.getBoundingClientRect();
-    const headerHeight = 80;
-    const availableHeight = rect.height - headerHeight;
-    const newHeight = availableHeight - (e.clientY - rect.top - headerHeight);
+    e.preventDefault();
+    const deltaY = startPosition.y - e.clientY;
+    const newHeight = startDimensions.height + deltaY;
+    
     setConsoleHeight(Math.max(120, Math.min(500, newHeight)));
-  }, [resizeType]);
+  }, [resizeType, startPosition.y, startDimensions.height]);
 
-  const startHorizontalResize = () => {
+  const startHorizontalResize = (e: React.MouseEvent) => {
+    e.preventDefault();
     setResizeType('horizontal');
     setIsResizing(true);
+    setStartPosition({ x: e.clientX, y: e.clientY });
+    setStartDimensions({ width: editorWidth, height: consoleHeight });
   };
 
-  const startVerticalResize = () => {
+  const startVerticalResize = (e: React.MouseEvent) => {
+    e.preventDefault();
     setResizeType('vertical');
     setIsResizing(true);
+    setStartPosition({ x: e.clientX, y: e.clientY });
+    setStartDimensions({ width: editorWidth, height: consoleHeight });
   };
 
   const stopResize = useCallback(() => {
@@ -210,6 +223,35 @@ document.addEventListener('DOMContentLoaded', function() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Preview</title>
         <style>
+            /* Custom minimalistic scrollbar */
+            ::-webkit-scrollbar {
+              width: 6px;
+              height: 6px;
+            }
+            
+            ::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            
+            ::-webkit-scrollbar-thumb {
+              background-color: #cbd5e1;
+              border-radius: 3px;
+            }
+            
+            ::-webkit-scrollbar-thumb:hover {
+              background-color: #94a3b8;
+            }
+            
+            ::-webkit-scrollbar-corner {
+              background: transparent;
+            }
+            
+            /* Firefox scrollbar */
+            * {
+              scrollbar-width: thin;
+              scrollbar-color: #cbd5e1 transparent;
+            }
+            
             ${cssCode}
         </style>
     </head>
@@ -295,10 +337,107 @@ document.addEventListener('DOMContentLoaded', function() {
     runCode(true); // Pass true to switch to preview if in editor mode
   }, [runCode]);
 
-  // Regular run function that doesn't switch layout (for auto-run and refresh)
+  // Refresh function that resets the entire playground
   const handleRefresh = useCallback(() => {
-    runCode(false); // Pass false to not switch layout
-  }, [runCode]);
+    // Clear console
+    setOutput('');
+    setError(null);
+    
+    // Reset to default code
+    const defaultHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My App</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Code Playground</h1>
+        <p>Start building your web application here.</p>
+        <button onclick="greet()">Click me</button>
+    </div>
+</body>
+</html>`;
+
+    const defaultCss = `* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8fafc;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #1e293b;
+}
+
+p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    color: #64748b;
+}
+
+button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background: #2563eb;
+}`;
+
+    const defaultJs = `function greet() {
+    console.log('Hello from the playground!');
+    alert('Welcome to Code Playground!');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded successfully');
+});`;
+
+    // Reset all code states
+    setHtmlCode(defaultHtml);
+    setCssCode(defaultCss);
+    setJsCode(defaultJs);
+    
+    // Reset UI states
+    setActiveTab('html');
+    setLayout('split');
+    setShowConsole(true);
+    
+    // Reset dimensions
+    setEditorWidth(50);
+    setConsoleHeight(200);
+    
+    // Clear preview and regenerate
+    setLivePreview('');
+    setTimeout(() => {
+      const previewCode = generateLivePreview();
+      setLivePreview(previewCode);
+      setOutput("✓ Playground refreshed successfully");
+    }, 100);
+  }, [generateLivePreview]);
 
   // Listen for console messages from iframe
   useEffect(() => {
@@ -319,23 +458,42 @@ document.addEventListener('DOMContentLoaded', function() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Run code on initial load and when autoRun is enabled
+  // Run code on initial load
   useEffect(() => {
     if (isClient) {
       runCode(false); // Don't switch layout on initial load
     }
   }, [isClient, runCode]);
 
-  // Auto-run when code changes and autoRun is enabled
+  // Auto-run functionality - only apply changes when autoRun is enabled
   useEffect(() => {
     if (autoRun && isClient) {
-      const timeoutId = setTimeout(() => {
+      // Clear existing timeout
+      if (autoRunTimeoutRef.current) {
+        clearTimeout(autoRunTimeoutRef.current);
+      }
+      
+      // Set new timeout for debounced auto-run
+      autoRunTimeoutRef.current = setTimeout(() => {
         runCode(false); // Don't switch layout for auto-run
-      }, 500); // Debounce auto-run
+      }, 300);
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        if (autoRunTimeoutRef.current) {
+          clearTimeout(autoRunTimeoutRef.current);
+        }
+      };
     }
   }, [htmlCode, cssCode, jsCode, autoRun, isClient, runCode]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoRunTimeoutRef.current) {
+        clearTimeout(autoRunTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Loading state
   if (!isClient) {
@@ -360,6 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setLayout={setLayout}
         showConsole={showConsole}
         setShowConsole={setShowConsole}
+        onRefresh={handleRefresh}
       />
 
       <div className="flex-1 flex overflow-hidden" style={{ height: mainContentHeight }}>
@@ -371,6 +530,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cssCode={cssCode}
             jsCode={jsCode}
             runCode={handleRunButtonClick}
+            autoRun={autoRun}
             layout={layout}
             handleEditorDidMount={handleEditorDidMount}
             handleEditorChange={handleEditorChange}

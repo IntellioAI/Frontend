@@ -16,6 +16,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
   width
 }) => {
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const deviceSpecs = {
     desktop: { 
@@ -39,6 +40,16 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
   };
 
   const currentDevice = deviceSpecs[previewMode];
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    
+    // Add a small delay to show the refresh animation
+    setTimeout(() => {
+      runCode();
+      setIsRefreshing(false);
+    }, 500);
+  };
 
   const getPreviewContainerStyles = () => {
     if (previewMode === 'desktop') {
@@ -160,11 +171,21 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
           <div className="w-px h-4 bg-gray-300"></div>
           
           <button
-            onClick={runCode}
-            className="flex items-center space-x-1 text-gray-400 hover:text-gray-600 transition-colors"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className={`p-2 rounded-md transition-colors duration-200 ${
+              isRefreshing 
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100 border border-gray-200'
+            }`}
             title="Refresh preview"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
@@ -180,9 +201,40 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
             title="Preview"
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             srcDoc={livePreview}
+            key={livePreview} // Force re-render when content changes
           />
         </div>
       </div>
+      
+      {/* Custom scrollbar styles for iframe content */}
+      <style>{`
+        iframe {
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
+        }
+        
+        iframe::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        
+        iframe::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        iframe::-webkit-scrollbar-thumb {
+          background-color: #cbd5e1;
+          border-radius: 3px;
+        }
+        
+        iframe::-webkit-scrollbar-thumb:hover {
+          background-color: #94a3b8;
+        }
+        
+        iframe::-webkit-scrollbar-corner {
+          background: transparent;
+        }
+      `}</style>
       
       {/* Preview status bar */}
       <div className="bg-gray-50 border-t border-gray-200 px-4 py-1 text-xs text-gray-500 flex items-center justify-between">
@@ -194,8 +246,8 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
           )}
         </div>
         <div className="flex items-center space-x-2">
-          <span>Ready</span>
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span>{isRefreshing ? 'Refreshing' : 'Ready'}</span>
+          <div className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
         </div>
       </div>
     </div>
