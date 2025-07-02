@@ -97,15 +97,13 @@ document.addEventListener('DOMContentLoaded', function() {
   const [autoRun, setAutoRun] = useState(true);
   const [isClient, setIsClient] = useState(false);
   const [livePreview, setLivePreview] = useState<string>('');
-  const [showConsole, setShowConsole] = useState(true);
+  const [showConsole, setShowConsole] = useState(false);
   
   // Resizer states - Fixed for smooth resizing
   const [isResizing, setIsResizing] = useState(false);
   const [resizeType, setResizeType] = useState<'horizontal' | 'vertical' | null>(null);
   const [editorWidth, setEditorWidth] = useState(50); // percentage
   const [consoleHeight, setConsoleHeight] = useState(200); // pixels
-  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
-  const [startDimensions, setStartDimensions] = useState({ width: 50, height: 200 });
 
   // Refs
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -113,6 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const playgroundRef = useRef<HTMLDivElement>(null);
   const autoRunTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resizeStartPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const resizeStartDimensions = useRef<{ width: number; height: number }>({ width: 50, height: 200 });
 
   // Initialize client-side
   useEffect(() => {
@@ -150,68 +150,71 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // Improved resizer handlers with smooth movement
-  const handleHorizontalResize = useCallback((e: MouseEvent) => {
-    if (resizeType !== 'horizontal' || !playgroundRef.current) return;
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || !playgroundRef.current) return;
     
     e.preventDefault();
-    const rect = playgroundRef.current.getBoundingClientRect();
-    const deltaX = e.clientX - startPosition.x;
-    const containerWidth = rect.width;
-    const deltaPercent = (deltaX / containerWidth) * 100;
-    const newWidth = startDimensions.width + deltaPercent;
     
-    setEditorWidth(Math.max(20, Math.min(80, newWidth)));
-  }, [resizeType, startPosition.x, startDimensions.width]);
+    if (resizeType === 'horizontal') {
+      const rect = playgroundRef.current.getBoundingClientRect();
+      const deltaX = e.clientX - resizeStartPosition.current.x;
+      const containerWidth = rect.width;
+      const deltaPercent = (deltaX / containerWidth) * 100;
+      const newWidth = resizeStartDimensions.current.width + deltaPercent;
+      
+      setEditorWidth(Math.max(20, Math.min(80, newWidth)));
+    } else if (resizeType === 'vertical') {
+      const deltaY = resizeStartPosition.current.y - e.clientY;
+      const newHeight = resizeStartDimensions.current.height + deltaY;
+      
+      setConsoleHeight(Math.max(120, Math.min(500, newHeight)));
+    }
+  }, [isResizing, resizeType]);
 
-  const handleVerticalResize = useCallback((e: MouseEvent) => {
-    if (resizeType !== 'vertical' || !playgroundRef.current) return;
-    
-    e.preventDefault();
-    const deltaY = startPosition.y - e.clientY;
-    const newHeight = startDimensions.height + deltaY;
-    
-    setConsoleHeight(Math.max(120, Math.min(500, newHeight)));
-  }, [resizeType, startPosition.y, startDimensions.height]);
-
-  const startHorizontalResize = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setResizeType('horizontal');
-    setIsResizing(true);
-    setStartPosition({ x: e.clientX, y: e.clientY });
-    setStartDimensions({ width: editorWidth, height: consoleHeight });
-  };
-
-  const startVerticalResize = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setResizeType('vertical');
-    setIsResizing(true);
-    setStartPosition({ x: e.clientX, y: e.clientY });
-    setStartDimensions({ width: editorWidth, height: consoleHeight });
-  };
-
-  const stopResize = useCallback(() => {
+  const handleMouseUp = useCallback(() => {
     setIsResizing(false);
     setResizeType(null);
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    document.body.style.pointerEvents = '';
   }, []);
 
+  const startHorizontalResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizeType('horizontal');
+    setIsResizing(true);
+    resizeStartPosition.current = { x: e.clientX, y: e.clientY };
+    resizeStartDimensions.current = { width: editorWidth, height: consoleHeight };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.body.style.pointerEvents = 'none';
+  };
+
+  const startVerticalResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizeType('vertical');
+    setIsResizing(true);
+    resizeStartPosition.current = { x: e.clientX, y: e.clientY };
+    resizeStartDimensions.current = { width: editorWidth, height: consoleHeight };
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    document.body.style.pointerEvents = 'none';
+  };
+
+  // Add global event listeners for resizing
   useEffect(() => {
-    if (isResizing && resizeType) {
-      const handleMouseMove = resizeType === 'horizontal' ? handleHorizontalResize : handleVerticalResize;
-      const cursor = resizeType === 'horizontal' ? 'col-resize' : 'row-resize';
-      
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', stopResize);
-      document.body.style.cursor = cursor;
-      document.body.style.userSelect = 'none';
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove, { passive: false });
+      document.addEventListener('mouseup', handleMouseUp);
 
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', stopResize);
+        document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isResizing, resizeType, handleHorizontalResize, handleVerticalResize, stopResize]);
+  }, [isResizing, handleMouseMove, handleMouseUp]);
 
   // Code execution
   const generateLivePreview = useCallback(() => {
@@ -310,14 +313,14 @@ document.addEventListener('DOMContentLoaded', function() {
     return combinedCode;
   }, [cssCode, htmlCode, jsCode]);
 
-  const runCode = useCallback(async (switchToPreview = false) => {
+  // Manual run function for button clicks
+  const handleManualRun = useCallback((switchToPreview = false) => {
     try {
       setError(null);
       const previewCode = generateLivePreview();
       setLivePreview(previewCode);
       setOutput("✓ Code executed successfully");
       
-      // Only switch to preview when explicitly requested (from run button)
       if (switchToPreview && layout === 'editor') {
         setLayout('preview');
       }
@@ -330,12 +333,32 @@ document.addEventListener('DOMContentLoaded', function() {
         setError(`Error: ${String(error)}`);
       }
     }
-  }, [generateLivePreview, layout, setLayout]);
+  }, [generateLivePreview, layout]);
+
+  // Auto-run function (separate from manual run)
+  const handleAutoRun = useCallback(() => {
+    if (!autoRun) return; // Double check autoRun state
+    
+    try {
+      setError(null);
+      const previewCode = generateLivePreview();
+      setLivePreview(previewCode);
+      setOutput("✓ Code executed successfully");
+    } catch (error) {
+      if (error instanceof Error) {
+        setOutput('');
+        setError(`Error: ${error.message}`);
+      } else {
+        setOutput('');
+        setError(`Error: ${String(error)}`);
+      }
+    }
+  }, [generateLivePreview, autoRun]);
 
   // Wrapper function for the run button that switches layout
   const handleRunButtonClick = useCallback(() => {
-    runCode(true); // Pass true to switch to preview if in editor mode
-  }, [runCode]);
+    handleManualRun(true); // Pass true to switch to preview if in editor mode
+  }, [handleManualRun]);
 
   // Refresh function that resets the entire playground
   const handleRefresh = useCallback(() => {
@@ -424,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Reset UI states
     setActiveTab('html');
     setLayout('split');
-    setShowConsole(true);
+    setShowConsole(false);
     
     // Reset dimensions
     setEditorWidth(50);
@@ -433,11 +456,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear preview and regenerate
     setLivePreview('');
     setTimeout(() => {
-      const previewCode = generateLivePreview();
-      setLivePreview(previewCode);
+      handleManualRun(false);
       setOutput("✓ Playground refreshed successfully");
     }, 100);
-  }, [generateLivePreview]);
+  }, [handleManualRun]);
 
   // Listen for console messages from iframe
   useEffect(() => {
@@ -458,33 +480,50 @@ document.addEventListener('DOMContentLoaded', function() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Run code on initial load
+  // Run code on initial load ONLY
   useEffect(() => {
     if (isClient) {
-      runCode(false); // Don't switch layout on initial load
+      // Initial load - run once
+      try {
+        setError(null);
+        const previewCode = generateLivePreview();
+        setLivePreview(previewCode);
+        setOutput("✓ Code executed successfully");
+      } catch (error) {
+        if (error instanceof Error) {
+          setOutput('');
+          setError(`Error: ${error.message}`);
+        }
+      }
     }
-  }, [isClient, runCode]);
+  }, [isClient, generateLivePreview]); // Only dependencies needed for initial load
 
-  // Auto-run functionality - only apply changes when autoRun is enabled
+  // Auto-run functionality - COMPLETELY SEPARATED
   useEffect(() => {
-    if (autoRun && isClient) {
-      // Clear existing timeout
+    // Skip entirely if autoRun is disabled
+    if (!autoRun || !isClient) {
+      return;
+    }
+
+    // Clear any existing timeout
+    if (autoRunTimeoutRef.current) {
+      clearTimeout(autoRunTimeoutRef.current);
+      autoRunTimeoutRef.current = null;
+    }
+
+    // Set debounced auto-run
+    autoRunTimeoutRef.current = setTimeout(() => {
+      handleAutoRun();
+    }, 300);
+
+    // Cleanup function
+    return () => {
       if (autoRunTimeoutRef.current) {
         clearTimeout(autoRunTimeoutRef.current);
+        autoRunTimeoutRef.current = null;
       }
-      
-      // Set new timeout for debounced auto-run
-      autoRunTimeoutRef.current = setTimeout(() => {
-        runCode(false); // Don't switch layout for auto-run
-      }, 300);
-
-      return () => {
-        if (autoRunTimeoutRef.current) {
-          clearTimeout(autoRunTimeoutRef.current);
-        }
-      };
-    }
-  }, [htmlCode, cssCode, jsCode, autoRun, isClient, runCode]);
+    };
+  }, [autoRun, isClient, htmlCode, cssCode, jsCode, handleAutoRun]); // Fixed dependencies
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -507,10 +546,41 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
-  const mainContentHeight = showConsole ? `calc(100vh - 80px - ${consoleHeight}px)` : 'calc(100vh - 80px)';
+  const mainContentHeight = showConsole ? `calc(80vh - 80px - ${consoleHeight}px)` : 'calc(80vh - 80px)';
 
   return (
-    <div ref={playgroundRef} className="h-screen bg-gray-50 flex flex-col">
+    <div ref={playgroundRef} className="h-[80vh] bg-gray-50 flex flex-col select-none">
+      <style>{`
+        /* Universal minimalistic scrollbar design */
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background-color: #cbd5e1;
+          border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background-color: #94a3b8;
+        }
+        
+        ::-webkit-scrollbar-corner {
+          background: transparent;
+        }
+        
+        /* Firefox scrollbar */
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
+        }
+      `}</style>
+      
       <PlaygroundHeader 
         autoRun={autoRun}
         setAutoRun={setAutoRun}
@@ -539,8 +609,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         {layout === 'split' && (
           <div
-            className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors flex-shrink-0"
+            className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors flex-shrink-0 active:bg-blue-600"
             onMouseDown={startHorizontalResize}
+            style={{ 
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }}
           />
         )}
 
@@ -558,8 +634,14 @@ document.addEventListener('DOMContentLoaded', function() {
       {/* Console resize handle */}
       {showConsole && (
         <div
-          className="h-1 bg-gray-300 hover:bg-blue-500 cursor-row-resize transition-colors flex-shrink-0"
+          className="h-1 bg-gray-300 hover:bg-blue-500 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-600"
           onMouseDown={startVerticalResize}
+          style={{ 
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
+          }}
         />
       )}
 

@@ -26,16 +26,16 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
       resolution: 'Full Width'
     },
     tablet: { 
-      width: '768px', 
-      height: '600px', 
-      label: 'Tablet',
-      resolution: '768 × 600'
+      width: '1024px', 
+      height: '768px', 
+      label: 'iPad Pro',
+      resolution: '1024 × 768'
     },
     mobile: { 
-      width: '375px', 
-      height: '600px', 
-      label: 'Mobile',
-      resolution: '375 × 600'
+      width: '430px', 
+      height: '932px', 
+      label: 'iPhone 14 Pro Max',
+      resolution: '430 × 932'
     }
   };
 
@@ -63,8 +63,6 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
     
     // Calculate available space for responsive design
     const containerPadding = 40;
-    const availableWidth = `calc(100% - ${containerPadding}px)`;
-    const availableHeight = `calc(100% - ${containerPadding}px)`;
     
     return {
       width: '100%',
@@ -91,7 +89,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
     // Responsive scaling for tablet and mobile
     const baseStyles = {
       border: 'none',
-      borderRadius: '12px',
+      borderRadius: previewMode === 'mobile' ? '24px' : '12px', // iPhone-like rounded corners
       boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)',
       background: 'white',
       transformOrigin: 'center center'
@@ -100,18 +98,18 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
     if (previewMode === 'tablet') {
       return {
         ...baseStyles,
-        width: '768px',
-        height: '600px', // Reduced height for better fit
+        width: '1024px',
+        height: '768px',
         maxWidth: '90%',
         maxHeight: '90%'
       };
     }
     
-    // mobile
+    // mobile - iPhone 14 Pro Max dimensions
     return {
       ...baseStyles,
-      width: '375px',
-      height: '600px', // Adjusted for better mobile preview
+      width: '430px',
+      height: '932px',
       maxWidth: '90%',
       maxHeight: '90%'
     };
@@ -181,7 +179,7 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
             title="Refresh preview"
           >
             <svg 
-              className="w-4 h-4" 
+              className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -205,36 +203,6 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
           />
         </div>
       </div>
-      
-      {/* Custom scrollbar styles for iframe content */}
-      <style>{`
-        iframe {
-          scrollbar-width: thin;
-          scrollbar-color: #cbd5e1 transparent;
-        }
-        
-        iframe::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-        
-        iframe::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        
-        iframe::-webkit-scrollbar-thumb {
-          background-color: #cbd5e1;
-          border-radius: 3px;
-        }
-        
-        iframe::-webkit-scrollbar-thumb:hover {
-          background-color: #94a3b8;
-        }
-        
-        iframe::-webkit-scrollbar-corner {
-          background: transparent;
-        }
-      `}</style>
       
       {/* Preview status bar */}
       <div className="bg-gray-50 border-t border-gray-200 px-4 py-1 text-xs text-gray-500 flex items-center justify-between">

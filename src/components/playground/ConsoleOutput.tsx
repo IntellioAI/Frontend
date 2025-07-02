@@ -65,11 +65,7 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
       <div className="flex-1 overflow-hidden">
         <div 
           ref={outputRef} 
-          className="font-mono text-xs leading-relaxed h-full overflow-y-auto scrollbar-hide"
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}
+          className="font-mono text-xs leading-relaxed h-full overflow-y-auto"
         >
           {error && (
             <div className="flex items-start space-x-2 px-4 py-2 bg-red-50 border-l-4 border-red-400 text-red-700">
@@ -125,12 +121,6 @@ const ConsoleOutput: React.FC<ConsoleOutputProps> = ({
           )}
         </div>
       </div>
-      
-      <style>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 };
