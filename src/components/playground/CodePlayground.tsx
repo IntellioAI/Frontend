@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
         autoRunTimeoutRef.current = null;
       }
     };
-  }, [autoRun, isClient, htmlCode, cssCode, jsCode, handleAutoRun]); // Fixed dependencies
+  }, [autoRun, isClient, htmlCode, cssCode, jsCode, handleAutoRun]); // All dependencies included
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -546,10 +546,10 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
-  const mainContentHeight = showConsole ? `calc(80vh - 80px - ${consoleHeight}px)` : 'calc(80vh - 80px)';
+  const mainContentHeight = showConsole ? `calc(100vh - 80px - ${consoleHeight}px)` : 'calc(100vh - 80px)';
 
   return (
-    <div ref={playgroundRef} className="h-[80vh] bg-gray-50 flex flex-col select-none">
+    <div ref={playgroundRef} className="h-screen bg-gray-50 flex flex-col select-none">
       <style>{`
         /* Universal minimalistic scrollbar design */
         ::-webkit-scrollbar {

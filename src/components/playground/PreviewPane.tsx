@@ -9,7 +9,6 @@ interface PreviewPaneProps {
 }
 
 const PreviewPane: React.FC<PreviewPaneProps> = ({
-  layout,
   runCode,
   livePreview,
   previewIframeRef,
@@ -60,9 +59,6 @@ const PreviewPane: React.FC<PreviewPaneProps> = ({
         alignItems: 'stretch'
       };
     }
-    
-    // Calculate available space for responsive design
-    const containerPadding = 40;
     
     return {
       width: '100%',
