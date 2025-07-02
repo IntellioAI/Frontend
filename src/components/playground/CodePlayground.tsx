@@ -99,11 +99,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const [livePreview, setLivePreview] = useState<string>('');
   const [showConsole, setShowConsole] = useState(false);
   
-  // Resizer states - Fixed for smooth resizing
+  // Resizer states - Enhanced with playground height
   const [isResizing, setIsResizing] = useState(false);
-  const [resizeType, setResizeType] = useState<'horizontal' | 'vertical' | null>(null);
+  const [resizeType, setResizeType] = useState<'horizontal' | 'vertical' | 'playground' | null>(null);
   const [editorWidth, setEditorWidth] = useState(50); // percentage
   const [consoleHeight, setConsoleHeight] = useState(200); // pixels
+  const [playgroundHeight, setPlaygroundHeight] = useState(650); // pixels - default height
 
   // Refs
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -112,11 +113,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const playgroundRef = useRef<HTMLDivElement>(null);
   const autoRunTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resizeStartPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const resizeStartDimensions = useRef<{ width: number; height: number }>({ width: 50, height: 200 });
+  const resizeStartDimensions = useRef<{ width: number; height: number; playgroundHeight: number }>({ 
+    width: 50, 
+    height: 200, 
+    playgroundHeight: 600
+  });
 
   // Initialize client-side
   useEffect(() => {
     setIsClient(true);
+    
     if (isMobileDevice) {
       setLayout('editor');
       setConsoleHeight(150);
@@ -149,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setEditorValue(value);
   };
 
-  // Improved resizer handlers with smooth movement
+  // Enhanced resizer handlers with playground height support
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing || !playgroundRef.current) return;
     
@@ -162,12 +168,17 @@ document.addEventListener('DOMContentLoaded', function() {
       const deltaPercent = (deltaX / containerWidth) * 100;
       const newWidth = resizeStartDimensions.current.width + deltaPercent;
       
-      setEditorWidth(Math.max(20, Math.min(80, newWidth)));
+      setEditorWidth(Math.max(35, Math.min(70, newWidth)));
     } else if (resizeType === 'vertical') {
       const deltaY = resizeStartPosition.current.y - e.clientY;
       const newHeight = resizeStartDimensions.current.height + deltaY;
       
       setConsoleHeight(Math.max(120, Math.min(500, newHeight)));
+    } else if (resizeType === 'playground') {
+      const deltaY = e.clientY - resizeStartPosition.current.y;
+      const newHeight = resizeStartDimensions.current.playgroundHeight + deltaY;
+      
+      setPlaygroundHeight(Math.max(600, newHeight));
     }
   }, [isResizing, resizeType]);
 
@@ -185,7 +196,11 @@ document.addEventListener('DOMContentLoaded', function() {
     setResizeType('horizontal');
     setIsResizing(true);
     resizeStartPosition.current = { x: e.clientX, y: e.clientY };
-    resizeStartDimensions.current = { width: editorWidth, height: consoleHeight };
+    resizeStartDimensions.current = { 
+      width: editorWidth, 
+      height: consoleHeight, 
+      playgroundHeight: playgroundHeight 
+    };
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     document.body.style.pointerEvents = 'none';
@@ -197,7 +212,27 @@ document.addEventListener('DOMContentLoaded', function() {
     setResizeType('vertical');
     setIsResizing(true);
     resizeStartPosition.current = { x: e.clientX, y: e.clientY };
-    resizeStartDimensions.current = { width: editorWidth, height: consoleHeight };
+    resizeStartDimensions.current = { 
+      width: editorWidth, 
+      height: consoleHeight, 
+      playgroundHeight: playgroundHeight 
+    };
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    document.body.style.pointerEvents = 'none';
+  };
+
+  const startPlaygroundResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizeType('playground');
+    setIsResizing(true);
+    resizeStartPosition.current = { x: e.clientX, y: e.clientY };
+    resizeStartDimensions.current = { 
+      width: editorWidth, 
+      height: consoleHeight, 
+      playgroundHeight: playgroundHeight 
+    };
     document.body.style.cursor = 'row-resize';
     document.body.style.userSelect = 'none';
     document.body.style.pointerEvents = 'none';
@@ -523,7 +558,7 @@ document.addEventListener('DOMContentLoaded', function() {
         autoRunTimeoutRef.current = null;
       }
     };
-  }, [autoRun, isClient, htmlCode, cssCode, jsCode, handleAutoRun]); // All dependencies included
+  }, [autoRun, isClient, htmlCode, cssCode, jsCode, handleAutoRun]); // Fixed dependencies
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -546,10 +581,10 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
-  const mainContentHeight = showConsole ? `calc(100vh - 80px - ${consoleHeight}px)` : 'calc(100vh - 80px)';
+  const mainContentHeight = showConsole ? `${playgroundHeight - 80 - consoleHeight}px` : `${playgroundHeight - 80}px`;
 
   return (
-    <div ref={playgroundRef} className="h-screen bg-gray-50 flex flex-col select-none">
+    <div className="bg-gray-50 flex flex-col select-none">
       <style>{`
         /* Universal minimalistic scrollbar design */
         ::-webkit-scrollbar {
@@ -581,36 +616,67 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       `}</style>
       
-      <PlaygroundHeader 
-        autoRun={autoRun}
-        setAutoRun={setAutoRun}
-        layout={layout}
-        setLayout={setLayout}
-        showConsole={showConsole}
-        setShowConsole={setShowConsole}
-      />
+      {/* Main playground container with dynamic height */}
+      <div 
+        ref={playgroundRef} 
+        className="bg-gray-50 flex flex-col select-none border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+        style={{ height: `${playgroundHeight}px` }}
+      >
+        <PlaygroundHeader 
+          autoRun={autoRun}
+          setAutoRun={setAutoRun}
+          layout={layout}
+          setLayout={setLayout}
+          showConsole={showConsole}
+          setShowConsole={setShowConsole}
+        />
 
-      <div className="flex-1 flex overflow-hidden" style={{ height: mainContentHeight }}>
-        {(layout === 'editor' || layout === 'split') && (
-          <EditorPane 
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            htmlCode={htmlCode}
-            cssCode={cssCode}
-            jsCode={jsCode}
-            runCode={handleRunButtonClick}
-            autoRun={autoRun}
-            layout={layout}
-            handleEditorDidMount={handleEditorDidMount}
-            handleEditorChange={handleEditorChange}
-            width={layout === 'split' ? `${editorWidth}%` : '100%'}
-          />
-        )}
+        <div className="flex-1 flex overflow-hidden" style={{ height: mainContentHeight }}>
+          {(layout === 'editor' || layout === 'split') && (
+            <EditorPane 
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              htmlCode={htmlCode}
+              cssCode={cssCode}
+              jsCode={jsCode}
+              runCode={handleRunButtonClick}
+              autoRun={autoRun}
+              layout={layout}
+              handleEditorDidMount={handleEditorDidMount}
+              handleEditorChange={handleEditorChange}
+              width={layout === 'split' ? `${editorWidth}%` : '100%'}
+            />
+          )}
 
-        {layout === 'split' && (
+          {layout === 'split' && (
+            <div
+              className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors flex-shrink-0 active:bg-blue-600"
+              onMouseDown={startHorizontalResize}
+              style={{ 
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+            />
+          )}
+
+          {(layout === 'preview' || layout === 'split') && (
+            <PreviewPane 
+              layout={layout}
+              runCode={handleRefresh}
+              livePreview={livePreview}
+              previewIframeRef={previewIframeRef}
+              width={layout === 'split' ? `${100 - editorWidth}%` : '100%'}
+            />
+          )}
+        </div>
+
+        {/* Console resize handle */}
+        {showConsole && (
           <div
-            className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors flex-shrink-0 active:bg-blue-600"
-            onMouseDown={startHorizontalResize}
+            className="h-1 bg-gray-300 hover:bg-blue-500 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-600"
+            onMouseDown={startVerticalResize}
             style={{ 
               userSelect: 'none',
               WebkitUserSelect: 'none',
@@ -620,42 +686,37 @@ document.addEventListener('DOMContentLoaded', function() {
           />
         )}
 
-        {(layout === 'preview' || layout === 'split') && (
-          <PreviewPane 
-            layout={layout}
-            runCode={handleRefresh}
-            livePreview={livePreview}
-            previewIframeRef={previewIframeRef}
-            width={layout === 'split' ? `${100 - editorWidth}%` : '100%'}
+        {/* Console */}
+        {showConsole && (
+          <ConsoleOutput 
+            output={output}
+            error={error}
+            setOutput={setOutput}
+            setError={setError}
+            outputRef={outputRef}
+            height={consoleHeight}
           />
         )}
       </div>
 
-      {/* Console resize handle */}
-      {showConsole && (
-        <div
-          className="h-1 bg-gray-300 hover:bg-blue-500 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-600"
-          onMouseDown={startVerticalResize}
-          style={{ 
-            userSelect: 'none',
-            WebkitUserSelect: 'none',
-            MozUserSelect: 'none',
-            msUserSelect: 'none'
-          }}
-        />
-      )}
-
-      {/* Console */}
-      {showConsole && (
-        <ConsoleOutput 
-          output={output}
-          error={error}
-          setOutput={setOutput}
-          setError={setError}
-          outputRef={outputRef}
-          height={consoleHeight}
-        />
-      )}
+      {/* Playground height resize handle - positioned at the bottom */}
+      <div
+        className="h-2 bg-gray-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-500 border-t border-gray-300 flex items-center justify-center group"
+        onMouseDown={startPlaygroundResize}
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none'
+        }}
+      >
+        {/* Visual indicator for resize handle */}
+        <div className="flex space-x-1 opacity-50 group-hover:opacity-75 transition-opacity">
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+        </div>
+      </div>
     </div>
   );
 }
