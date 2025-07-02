@@ -518,7 +518,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setLayout={setLayout}
         showConsole={showConsole}
         setShowConsole={setShowConsole}
-        onRefresh={handleRefresh}
       />
 
       <div className="flex-1 flex overflow-hidden" style={{ height: mainContentHeight }}>
