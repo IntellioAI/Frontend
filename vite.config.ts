@@ -1,5 +1,6 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path' // ✅ Required for alias resolution
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,6 +15,11 @@ export default defineConfig({
       }
     })
   ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src') // ✅ This enables "@/..." imports
+    }
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
     include: ['react', 'react-dom', 'react-router-dom']
@@ -21,7 +27,7 @@ export default defineConfig({
   server: {
     host: true,
     hmr: {
-      overlay: false, // Disable error overlay on mobile
+      overlay: false // Disable error overlay on mobile
     }
   },
   build: {
@@ -37,8 +43,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom'],
-          'icons': ['lucide-react']
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          icons: ['lucide-react']
         }
       }
     },
@@ -47,7 +53,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     cssCodeSplit: true,
     // Enable brotli compression
-    reportCompressedSize: false,
+    reportCompressedSize: false
   },
   // Optimize CSS
   css: {
@@ -64,4 +70,4 @@ export default defineConfig({
   esbuild: {
     legalComments: 'none'
   }
-});
+})
