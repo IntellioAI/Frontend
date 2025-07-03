@@ -4,7 +4,7 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/vite.svg',
-  '/images/HERO.avif',
+  '/images/Background/HERO.avif',
   '/images/PF1.webp',
   '/images/PF2.webp'
 ];

@@ -1,13 +1,14 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { lazy, Suspense } from 'react';
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
+import { SidebarStandalone } from "./components/sidebar";
 import { ThemeProvider } from "./context/ThemeContext";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const Products = lazy(() => import('./pages/Products'));
-const Playground = lazy(() => import('./pages/Playground').then(module => ({ default: module.Playground })));
+const Playground = lazy(() => import('./pages/web_Playground').then(module => ({ default: module.Web_Playground })));
 
 // Import global styles
 import "./styles/global.css";
@@ -19,23 +20,51 @@ const LoadingFallback = () => (
   </div>
 );
 
+// Layout component that handles conditional navigation
+function AppLayout() {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+  const showSidebar = location.pathname === '/products' || location.pathname === '/Products' || location.pathname === '/playground';
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Conditional Sidebar */}
+      {showSidebar && (
+        <div className="z-40">
+          <SidebarStandalone />
+        </div>
+      )}
+      
+      {/* Main Content Area */}
+      <div className={`flex flex-col min-h-screen w-full transition-all duration-300 ${
+        showSidebar ? 'lg:ml-0' : ''
+      }`}>
+        {/* Conditional Navbar - only on home page */}
+        {isHomePage && <Navbar />}
+        
+        {/* Main Content */}
+        <main className={`flex-grow ${showSidebar ? 'overflow-hidden' : ''}`}>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/Products" element={<Products />} />
+              <Route path="/playground" element={<Playground />} />
+            </Routes>
+          </Suspense>
+        </main>
+        
+        {/* Footer - only on home page */}
+        {isHomePage && <Footer />}
+      </div>
+    </div>
+  );
+}
+
 function App() {  
   return (
     <ThemeProvider>
       <Router>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/Products" element={<Products />} />
-                <Route path="/playground" element={<Playground />} />
-              </Routes>
-            </Suspense>
-          </main>
-          <Footer />  
-        </div>
+        <AppLayout />
       </Router>
     </ThemeProvider>
   );
