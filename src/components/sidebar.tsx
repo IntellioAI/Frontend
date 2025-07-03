@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { Link } from "react-router-dom";
 import {
   Home,
   Sparkles,
@@ -21,32 +21,32 @@ import { cn } from "@/lib/utils"
 const navigationItems = [
   {
     title: "Dashboard",
-    href: "/dashboard",
+    to: "/dashboard",
     icon: Home,
   },
   {
     title: "AI Playground",
-    href: "/playground",
+    to: "/playground",
     icon: Sparkles,
   },
   {
     title: "Faculty Dashboard",
-    href: "/faculty",
+    to: "/faculty",
     icon: Users,
   },
   {
     title: "Crafts Tools",
-    href: "/crafts",
+    to: "/crafts",
     icon: Wrench,
   },
   {
     title: "AI Digital Clone",
-    href: "/clone",
+    to: "/clone",
     icon: UserCircle,
   },
   {
     title: "Pulse",
-    href: "/pulse",
+    to: "/pulse",
     icon: BarChart3,
   },
 ]
@@ -54,22 +54,22 @@ const navigationItems = [
 const bottomItems = [
   {
     title: "Notifications",
-    href: "/notifications",
+    to: "/notifications",
     icon: Bell,
   },
   {
     title: "Documentation",
-    href: "/docs",
+    to: "/docs",
     icon: BookOpen,
   },
   {
     title: "Help & Support",
-    href: "/help",
+    to: "/help",
     icon: HelpCircle,
   },
   {
     title: "Settings",
-    href: "/settings",
+    to: "/settings",
     icon: Settings,
   },
 ]
@@ -136,8 +136,8 @@ export function SidebarStandalone({ className }: SidebarStandaloneProps) {
         <nav className="space-y-1 px-3">
           {navigationItems.map((item) => (
             <Link
-              key={item.href}
-              href={item.href}
+              key={item.to}
+              to={item.to}
               className={cn(
                 "flex items-center space-x-3 px-3 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors group",
                 isCollapsed && "justify-center",
@@ -155,8 +155,8 @@ export function SidebarStandalone({ className }: SidebarStandaloneProps) {
         <nav className="space-y-1">
           {bottomItems.map((item) => (
             <Link
-              key={item.href}
-              href={item.href}
+              key={item.to}
+              to={item.to}
               className={cn(
                 "flex items-center space-x-3 px-3 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors",
                 isCollapsed && "justify-center",

@@ -190,9 +190,7 @@ export default function Home() {
               </span>
             </h1>
 
-            <div
-              className={`flex justify-center mb-8`}
-            >
+            <div className={`flex justify-center mb-8`}>
               <span className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 text-white font-semibold shadow-lg backdrop-blur-sm text-base md:text-lg">
                 Empowering Future Engineers
               </span>
@@ -204,21 +202,17 @@ export default function Home() {
               Products, AI-powered learning, and a global community of peers and
               mentors.
             </p>
-            <div
-              className={`flex flex-col sm:flex-row justify-center gap-6`}
-            >
+            <div className={`flex flex-col sm:flex-row justify-center gap-6`}>
               <Link
                 to="/Products"
                 className="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
                 aria-label="Explore all available Products"
               >
                 Explore Products
-                <ArrowRight
-                  className={`ml-2 h-5 w-5`}
-                />
+                <ArrowRight className={`ml-2 h-5 w-5`} />
               </Link>
               <Link
-                to="/register"
+                to="/"
                 className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl transition-all duration-300"
                 aria-label="Start your free trial"
               >
@@ -813,26 +807,6 @@ export default function Home() {
                                     "{testimonial.quote}"
                                   </p>
                                 </div>
-
-                                {/* Compact user profile layout */}
-                                <div className="flex items-center pt-1 mt-1 sm:pt-3 sm:mt-3 border-t border-gray-800/30">
-                                  <div className="mr-2 sm:mr-3">
-                                    <img
-                                      src={testimonial.avatar}
-                                      alt={testimonial.name}
-                                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
-                                      loading="lazy"
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="font-medium text-white text-xs sm:text-sm">
-                                      {testimonial.name}
-                                    </div>
-                                    <div className="text-xs text-gray-400">
-                                      {testimonial.role}
-                                    </div>
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           </div>
@@ -966,7 +940,7 @@ export default function Home() {
               }`}
             >
               <Link
-                to="/register"
+                to="/"
                 className="px-8 md:px-10 py-4 md:py-5 bg-white text-indigo-700 rounded-xl text-base md:text-lg font-bold hover:bg-indigo-50 transition-all duration-300 shadow-xl hover:shadow-2xl"
                 aria-label="Start your free trial"
               >

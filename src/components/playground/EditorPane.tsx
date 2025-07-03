@@ -24,7 +24,6 @@ const EditorPane: React.FC<EditorPaneProps> = ({
   jsCode,
   runCode,
   autoRun,
-  layout,
   handleEditorDidMount,
   handleEditorChange,
   width

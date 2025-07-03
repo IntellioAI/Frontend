@@ -78,7 +78,7 @@ export function Playground() {
           
           {/* Code Playground with enhanced styling */}
           <div className="relative rounded-xl overflow-hidden shadow-2xl shadow-indigo-900/20 border border-indigo-500/10">
-            <CodePlayground isMobileDevice={isMobileDevice} shouldReduceMotion={shouldReduceMotion} />
+            <CodePlayground isMobileDevice={isMobileDevice}/>
           </div>
           
 

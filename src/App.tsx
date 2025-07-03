@@ -7,9 +7,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const Products = lazy(() => import('./pages/Products'));
-const Profile = lazy(() => import('./pages/Profile').then(module => ({ default: module.Profile })));
 const Playground = lazy(() => import('./pages/Playground').then(module => ({ default: module.Playground })));
-const Register = lazy(() => import('./pages/Register').then(module => ({ default: module.Register })));
 
 // Import global styles
 import "./styles/global.css";
@@ -32,9 +30,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/Products" element={<Products />} />
-                <Route path="/profile" element={<Profile />} />
                 <Route path="/playground" element={<Playground />} />
-                <Route path="/register" element={<Register />} />
               </Routes>
             </Suspense>
           </main>
