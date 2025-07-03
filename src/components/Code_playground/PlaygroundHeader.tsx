@@ -1,69 +1,104 @@
-import { Layout, Code, Monitor } from 'lucide-react';
+import React from 'react';
 
 interface PlaygroundHeaderProps {
-  theme: string;
-  setTheme: (theme: string) => void;
   autoRun: boolean;
-  setAutoRun: (autoRun: boolean) => void;
-  layout: string;
-  setLayout: (layout: string) => void;
+  setAutoRun: (value: boolean) => void;
+  layout: 'split' | 'editor' | 'preview';
+  setLayout: (layout: 'split' | 'editor' | 'preview') => void;
+  showConsole: boolean;
+  setShowConsole: (value: boolean) => void;
 }
 
-export default function PlaygroundHeader({
-  theme,
-  setTheme,
+const PlaygroundHeader: React.FC<PlaygroundHeaderProps> = ({
   autoRun,
   setAutoRun,
   layout,
-  setLayout
-}: PlaygroundHeaderProps) {
+  setLayout,
+  showConsole,
+  setShowConsole,
+}) => {
   return (
-    <div className="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
-      <div className="flex items-center space-x-4">
-        <h2 className="text-lg font-semibold text-gray-800">Code Playground</h2>
-        <select
-          value={theme}
-          onChange={(e) => setTheme(e.target.value)}
-          className="bg-white text-sm border rounded px-2 py-1"
-        >
-          <option value="vs-dark">Dark</option>
-          <option value="light">Light</option>
-        </select>
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="autoRun"
-            checked={autoRun}
-            onChange={() => setAutoRun(!autoRun)}
-            className="mr-1"
-          />
-          <label htmlFor="autoRun" className="text-sm text-gray-700">Auto-run</label>
+    <header className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-xl font-semibold text-gray-900">AI Code Playground</h1>
+              <div className="text-xs text-gray-500">Programming Languages</div>
+            </div>
+            <div className="text-xs bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-2 py-1 rounded-full font-medium">
+              Gemini Powered
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="autoRun"
+                checked={autoRun}
+                onChange={() => setAutoRun(!autoRun)}
+                className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
+              />
+              <label htmlFor="autoRun" className="text-sm text-gray-700 font-medium">
+                Auto-run
+              </label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowConsole(!showConsole)}
+                className={`flex items-center space-x-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                  showConsole 
+                    ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span>Console</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center bg-gray-100 rounded-lg p-1 shadow-sm">
+          <button
+            onClick={() => setLayout('editor')}
+            className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+              layout === 'editor' 
+                ? 'bg-white text-gray-900 shadow-sm border border-gray-200' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            <span>Code</span>
+          </button>
+          <button
+            onClick={() => setLayout('split')}
+            className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+              layout === 'split' 
+                ? 'bg-white text-gray-900 shadow-sm border border-gray-200' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+            <span>Split</span>
+          </button>
         </div>
       </div>
-      
-      <div className="flex items-center space-x-2">
-        <button 
-          onClick={() => setLayout('split')}
-          className={`p-1 rounded ${layout === 'split' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-200'}`}
-          title="Split View"
-        >
-          <Layout size={18} />
-        </button>
-        <button 
-          onClick={() => setLayout('editor')}
-          className={`p-1 rounded ${layout === 'editor' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-200'}`}
-          title="Editor Only"
-        >
-          <Code size={18} />
-        </button>
-        <button 
-          onClick={() => setLayout('preview')}
-          className={`p-1 rounded ${layout === 'preview' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-200'}`}
-          title="Preview Only"
-        >
-          <Monitor size={18} />
-        </button>
-      </div>
-    </div>
+    </header>
   );
-}
+};
+
+export default PlaygroundHeader;

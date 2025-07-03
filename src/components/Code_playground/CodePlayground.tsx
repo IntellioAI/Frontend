@@ -1,72 +1,100 @@
-import { useState, useRef, useEffect } from 'react';
-import { Play, Download, Copy, Save, Layout, Code, Monitor, RefreshCw, Bug, Zap, Terminal, Check, AlertTriangle, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Check, AlertTriangle, Terminal } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import type { editor } from 'monaco-editor';
+
+// Import components
+import PlaygroundHeader from './PlaygroundHeader';
+import EditorPane from './EditorPane';
+import ConsoleOutput from './ConsoleOutput';
 
 // Use environment variable for API key
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-export default function CodePlayground() {
-  // Language state and categories
-  const [activeCategory, setActiveCategory] = useState('programming');
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  
-  // Code states for different languages
+interface CodePlaygroundProps {
+  isMobileDevice?: boolean;
+}
+
+export default function CodePlayground({ 
+  isMobileDevice = false 
+}: CodePlaygroundProps) {
+  // Code states for programming languages only
   const [pythonCode, setPythonCode] = useState('# Python code\nprint("Hello World!")');
   const [cCode, setCCode] = useState('// C code\n#include <stdio.h>\n\nint main() {\n    printf("Hello World!\\n");\n    return 0;\n}');
   const [javaCode, setJavaCode] = useState('// Java code\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello World!");\n    }\n}');
-  const [htmlCode, setHtmlCode] = useState('<!-- HTML code -->\n<!DOCTYPE html>\n<html>\n<head>\n    <title>Hello World</title>\n</head>\n<body>\n    <h1>Hello World!</h1>\n</body>\n</html>');
-  const [cssCode, setCssCode] = useState('/* CSS code */\nbody {\n    font-family: Arial, sans-serif;\n    background-color: #f0f0f0;\n}\n\nh1 {\n    color: #333;\n    text-align: center;\n}');
-  const [jsCode, setJsCode] = useState('// JavaScript code\nconsole.log("Hello World!");\n\ndocument.addEventListener("DOMContentLoaded", function() {\n    alert("Hello World!");\n});');
   
   const [activeTab, setActiveTab] = useState('python');
   const [output, setOutput] = useState('');
-  const [layout, setLayout] = useState('split');
-  const [theme, setTheme] = useState('vs-dark');
+  const [error, setError] = useState<string | null>(null);
+  const [layout, setLayout] = useState<'split' | 'editor' | 'preview'>('editor');
   const [autoRun, setAutoRun] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [showInputPanel, setShowInputPanel] = useState(false);
+  const [showConsole, setShowConsole] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Analysis states - for split view
+  const [analysisType, setAnalysisType] = useState<'output' | 'debug' | 'optimize' | 'analyze'>('output');
+  const [analysisResult, setAnalysisResult] = useState('');
+  
+  // Enhanced optimization states
   const [optimizedCode, setOptimizedCode] = useState('');
   const [showOptimizedCode, setShowOptimizedCode] = useState(false);
-  const [showChangeNotification, setShowChangeNotification] = useState(false);
-  const [changeNotificationType, setChangeNotificationType] = useState('success');
-  const [changeNotificationMessage, setChangeNotificationMessage] = useState('');
   const [originalCodeBeforeOptimization, setOriginalCodeBeforeOptimization] = useState('');
-  const [optimizationView, setOptimizationView] = useState('code'); // 'analysis' or 'code'
+  const [optimizationView, setOptimizationView] = useState<'code' | 'analysis'>('code');
   const [optimizationAnalysis, setOptimizationAnalysis] = useState('');
   
-  // Updated state for debugging with view toggle
+  // Enhanced debugging states
   const [debuggingData, setDebuggingData] = useState({
     fixedCode: '',
     analysis: '',
     showFixedCode: false,
     originalCodeBeforeDebugging: '',
-    debugView: 'analysis' // 'analysis' or 'code'
+    debugView: 'analysis' as 'analysis' | 'code'
   });
+
+  // Notification states
+  const [showChangeNotification, setShowChangeNotification] = useState(false);
+  const [changeNotificationType, setChangeNotificationType] = useState<'success' | 'error' | 'warning' | 'info'>('success');
+  const [changeNotificationMessage, setChangeNotificationMessage] = useState('');
+
+  // Resizer states
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeType, setResizeType] = useState<'horizontal' | 'vertical' | 'playground' | null>(null);
+  const [editorWidth, setEditorWidth] = useState(50);
+  const [consoleHeight, setConsoleHeight] = useState(200);
+  const [playgroundHeight, setPlaygroundHeight] = useState(650);
   
-  const editorRef = useRef(null);
-  const optimizedEditorRef = useRef(null);
-  const fixedCodeEditorRef = useRef(null);
-  
-  const handleEditorDidMount = (editor) => {
-    editorRef.current = editor;
-  };
+  // Refs
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const optimizedEditorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const fixedCodeEditorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
+  const playgroundRef = useRef<HTMLDivElement>(null);
+  const resizeStartPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const resizeStartDimensions = useRef<{ width: number; height: number; playgroundHeight: number }>({ 
+    width: 50, 
+    height: 200, 
+    playgroundHeight: 650
+  });
 
-  const handleOptimizedEditorDidMount = (editor) => {
-    optimizedEditorRef.current = editor;
-  };
-
-  const handleFixedCodeEditorDidMount = (editor) => {
-    fixedCodeEditorRef.current = editor;
-  };
-
+  // Initialize client-side
   useEffect(() => {
+    setIsClient(true);
     console.log("API Key value:", GEMINI_API_KEY);
     if (!GEMINI_API_KEY) {
       setOutput('Warning: Gemini API key not found in environment variables. Please add VITE_GEMINI_API_KEY to your .env file.');
     }
-  }, []);
+    
+    if (isMobileDevice) {
+      setLayout('editor');
+      setConsoleHeight(150);
+      setPlaygroundHeight(600);
+    }
+  }, [isMobileDevice]);
 
+  // Handle notification auto-hide
   useEffect(() => {
     if (showChangeNotification) {
       const timer = setTimeout(() => {
@@ -76,27 +104,19 @@ export default function CodePlayground() {
     }
   }, [showChangeNotification]);
   
-  // Handle category change
+  // Handle category change - removed since we only have programming languages
   useEffect(() => {
-    if (activeCategory === 'programming') {
-      if (!['python', 'c', 'java'].includes(activeTab)) {
-        setActiveTab('python');
-      }
-    } else if (activeCategory === 'web') {
-      if (!['html', 'css', 'js'].includes(activeTab)) {
-        setActiveTab('html');
-      }
+    if (!['python', 'c', 'java'].includes(activeTab)) {
+      setActiveTab('python');
     }
-  }, [activeCategory]);
+  }, [activeTab]);
 
+  // Editor helper functions - programming languages only
   const getEditorLanguage = () => {
     switch (activeTab) {
       case 'python': return 'python';
       case 'c': return 'c';
       case 'java': return 'java';
-      case 'html': return 'html';
-      case 'css': return 'css';
-      case 'js': return 'javascript';
       default: return 'python';
     }
   };
@@ -106,14 +126,31 @@ export default function CodePlayground() {
       case 'python': return pythonCode;
       case 'c': return cCode;
       case 'java': return javaCode;
-      case 'html': return htmlCode;
-      case 'css': return cssCode;
-      case 'js': return jsCode;
       default: return pythonCode;
     }
   };
 
-  const handleEditorChange = (value) => {
+  const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
+    if (isMobileDevice) {
+      editor.updateOptions({
+        fontSize: 14,
+        minimap: { enabled: false },
+        lineNumbers: 'off',
+        scrollBeyondLastLine: false
+      });
+    }
+  };
+
+  const handleOptimizedEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
+    optimizedEditorRef.current = editor;
+  };
+
+  const handleFixedCodeEditorDidMount = (editor: editor.IStandaloneCodeEditor) => {
+    fixedCodeEditorRef.current = editor;
+  };
+
+  const handleEditorChange = (value: string | undefined) => {
     if (value === undefined) return;
     
     switch (activeTab) {
@@ -126,15 +163,6 @@ export default function CodePlayground() {
       case 'java':
         setJavaCode(value);
         break;
-      case 'html':
-        setHtmlCode(value);
-        break;
-      case 'css':
-        setCssCode(value);
-        break;
-      case 'js':
-        setJsCode(value);
-        break;
     }
     
     if (autoRun) {
@@ -142,9 +170,106 @@ export default function CodePlayground() {
     }
   };
 
-  const callGeminiAPI = async (prompt, outputMode) => {
+  // Enhanced resizer handlers
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || !playgroundRef.current) return;
+    
+    e.preventDefault();
+    
+    if (resizeType === 'horizontal') {
+      const rect = playgroundRef.current.getBoundingClientRect();
+      const deltaX = e.clientX - resizeStartPosition.current.x;
+      const containerWidth = rect.width;
+      const deltaPercent = (deltaX / containerWidth) * 100;
+      const newWidth = resizeStartDimensions.current.width + deltaPercent;
+      
+      setEditorWidth(Math.max(35, Math.min(70, newWidth)));
+    } else if (resizeType === 'vertical') {
+      const deltaY = resizeStartPosition.current.y - e.clientY;
+      const newHeight = resizeStartDimensions.current.height + deltaY;
+      
+      setConsoleHeight(Math.max(120, Math.min(500, newHeight)));
+    } else if (resizeType === 'playground') {
+      const deltaY = e.clientY - resizeStartPosition.current.y;
+      const newHeight = resizeStartDimensions.current.playgroundHeight + deltaY;
+      
+      setPlaygroundHeight(Math.max(600, newHeight));
+    }
+  }, [isResizing, resizeType]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false);
+    setResizeType(null);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    document.body.style.pointerEvents = '';
+  }, []);
+
+  const startHorizontalResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizeType('horizontal');
+    setIsResizing(true);
+    resizeStartPosition.current = { x: e.clientX, y: e.clientY };
+    resizeStartDimensions.current = { 
+      width: editorWidth, 
+      height: consoleHeight, 
+      playgroundHeight: playgroundHeight 
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.body.style.pointerEvents = 'none';
+  };
+
+  const startVerticalResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizeType('vertical');
+    setIsResizing(true);
+    resizeStartPosition.current = { x: e.clientX, y: e.clientY };
+    resizeStartDimensions.current = { 
+      width: editorWidth, 
+      height: consoleHeight, 
+      playgroundHeight: playgroundHeight 
+    };
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    document.body.style.pointerEvents = 'none';
+  };
+
+  const startPlaygroundResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizeType('playground');
+    setIsResizing(true);
+    resizeStartPosition.current = { x: e.clientX, y: e.clientY };
+    resizeStartDimensions.current = { 
+      width: editorWidth, 
+      height: consoleHeight, 
+      playgroundHeight: playgroundHeight 
+    };
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+    document.body.style.pointerEvents = 'none';
+  };
+
+  // Add global event listeners for resizing
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove, { passive: false });
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  // API call function
+  const callGeminiAPI = async (prompt: string, outputMode: string) => {
     if (!GEMINI_API_KEY) {
-      setOutput('Error: Gemini API key is missing. Please add REACT_APP_GEMINI_API_KEY to your .env file.');
+      setOutput('Error: Gemini API key is missing. Please add VITE_GEMINI_API_KEY to your .env file.');
       return null;
     }
 
@@ -194,7 +319,6 @@ export default function CodePlayground() {
       } else if (outputMode === 'debug') {
         const debuggingReport = extractSection(fullResponse, 'DEBUGGING REPORT');
         const fixedCode = extractSection(fullResponse, 'FIXED CODE');
-        processedResponse = `${debuggingReport || ''}\n\n${fixedCode || ''}`;
         return { analysis: debuggingReport, fixedCode: fixedCode };
       } else if (outputMode === 'optimize') {
         const optimizedCode = extractSection(fullResponse, 'OPTIMIZED CODE');
@@ -227,7 +351,7 @@ export default function CodePlayground() {
     }
   };
   
-  const extractSection = (text, sectionName) => {
+  const extractSection = (text: string, sectionName: string) => {
     const regex = new RegExp(`===\\s*${sectionName}\\s*===\\s*([\\s\\S]*?)(?:===\\s*|$)`, 'i');
     const match = text.match(regex);
     
@@ -243,59 +367,30 @@ export default function CodePlayground() {
     return match ? match[1].trim() : null;
   };
 
+  // Code execution functions
+  const detectInputRequirement = (code: string, language: string) => {
+    if (language === 'python') {
+      return code.includes('input(') || code.includes('raw_input(');
+    } else if (language === 'c') {
+      return code.includes('scanf') || code.includes('gets') || code.includes('fgets');
+    } else if (language === 'java') {
+      return code.includes('Scanner') || code.includes('readLine') || code.includes('System.in');
+    }
+    return false;
+  };
+
   const runCode = async () => {
+    setLayout('split'); // Auto-switch to split view
+    setAnalysisType('output');
+    
     const code = getEditorValue();
     const language = getEditorLanguage();
-    
-    // Special handling for web languages
-    if (['html', 'css', 'js'].includes(activeTab)) {
-      // For web languages, show a preview
-      if (activeTab === 'html') {
-        const previewHtml = `<iframe srcdoc="${code.replace(/"/g, '&quot;')}" style="width: 100%; height: 100%; border: none;"></iframe>`;
-        setOutput(previewHtml);
-        return;
-      } else if (activeTab === 'css') {
-        const previewHtml = `<div style="padding: 10px; background-color: #fff;">
-          <p>CSS Preview:</p>
-          <style>${code}</style>
-          <div class="preview-element">
-            <h1>Heading 1</h1>
-            <p>Paragraph text</p>
-            <button>Button</button>
-          </div>
-        </div>`;
-        setOutput(previewHtml);
-        return;
-      } else if (activeTab === 'js') {
-        try {
-          // Create a sandbox environment to run JS code
-          const consoleOutput = [];
-          const originalConsoleLog = console.log;
-          console.log = (...args) => {
-            consoleOutput.push(args.join(' '));
-            originalConsoleLog(...args);
-          };
-          
-          // Execute the JS code in a safe way
-          const executeJS = new Function(code);
-          executeJS();
-          
-          // Restore original console.log
-          console.log = originalConsoleLog;
-          
-          setOutput(`Console Output:\n${consoleOutput.join('\n')}`);
-        } catch (error) {
-          setOutput(`JavaScript Error: ${error.message}`);
-        }
-        return;
-      }
-    }
     
     const requiresInput = detectInputRequirement(code, language);
     
     if (requiresInput && !userInput && !showInputPanel) {
       setShowInputPanel(true);
-      setOutput("This code appears to require user input. Please provide input in the input panel below, then run the code again.");
+      setAnalysisResult("This code appears to require user input. Please provide input in the input panel below, then run the code again.");
       return;
     }
     
@@ -326,24 +421,15 @@ Format your response like this:
     
     const result = await callGeminiAPI(prompt, 'run');
     if (result) {
-      setOutput(result);
-      setShowOptimizedCode(false);
-      setDebuggingData(prev => ({ ...prev, showFixedCode: false }));
+      setAnalysisResult(result);
+      setError(null);
     }
-  };
-
-  const detectInputRequirement = (code, language) => {
-    if (language === 'python') {
-      return code.includes('input(') || code.includes('raw_input(');
-    } else if (language === 'c') {
-      return code.includes('scanf') || code.includes('gets') || code.includes('fgets');
-    } else if (language === 'java') {
-      return code.includes('Scanner') || code.includes('readLine') || code.includes('System.in');
-    }
-    return false;
   };
 
   const debugCode = async () => {
+    setLayout('split'); // Auto-switch to split view
+    setAnalysisType('debug');
+    
     const code = getEditorValue();
     const language = getEditorLanguage();
     
@@ -376,6 +462,7 @@ Format your response like this:
     
     const result = await callGeminiAPI(prompt, 'debug');
     if (result) {
+      setAnalysisResult(`=== DEBUGGING REPORT ===\n${result.analysis}\n\n=== FIXED CODE ===\n\`\`\`${getEditorLanguage()}\n${result.fixedCode}\n\`\`\``);
       setDebuggingData({
         fixedCode: result.fixedCode,
         analysis: result.analysis,
@@ -383,93 +470,17 @@ Format your response like this:
         originalCodeBeforeDebugging: getEditorValue(),
         debugView: 'analysis'
       });
-      setShowOptimizedCode(false);
     }
-  };
-
-  const applyDebuggedCode = () => {
-    if (!debuggingData.fixedCode) {
-      setChangeNotificationType('error');
-      setChangeNotificationMessage('No fixed code available to apply');
-      setShowChangeNotification(true);
-      return;
-    }
-    
-    switch (activeTab) {
-      case 'python':
-        setPythonCode(debuggingData.fixedCode);
-        break;
-      case 'c':
-        setCCode(debuggingData.fixedCode);
-        break;
-      case 'java':
-        setJavaCode(debuggingData.fixedCode);
-        break;
-      case 'html':
-        setHtmlCode(debuggingData.fixedCode);
-        break;
-      case 'css':
-        setCssCode(debuggingData.fixedCode);
-        break;
-      case 'js':
-        setJsCode(debuggingData.fixedCode);
-        break;
-    }
-    
-    setChangeNotificationType('success');
-    setChangeNotificationMessage('Debugged code applied successfully!');
-    setShowChangeNotification(true);
-    
-    setDebuggingData(prev => ({ ...prev, showFixedCode: false }));
-    
-    if (autoRun) {
-      setTimeout(() => {
-        runCode();
-      }, 100);
-    }
-  };
-
-  const revertDebuggedChanges = () => {
-    if (!debuggingData.originalCodeBeforeDebugging) {
-      setChangeNotificationType('warning');
-      setChangeNotificationMessage('No original code to revert to');
-      setShowChangeNotification(true);
-      return;
-    }
-    
-    switch (activeTab) {
-      case 'python':
-        setPythonCode(debuggingData.originalCodeBeforeDebugging);
-        break;
-      case 'c':
-        setCCode(debuggingData.originalCodeBeforeDebugging);
-        break;
-      case 'java':
-        setJavaCode(debuggingData.originalCodeBeforeDebugging);
-        break;
-      case 'html':
-        setHtmlCode(debuggingData.originalCodeBeforeDebugging);
-        break;
-      case 'css':
-        setCssCode(debuggingData.originalCodeBeforeDebugging);
-        break;
-      case 'js':
-        setJsCode(debuggingData.originalCodeBeforeDebugging);
-        break;
-    }
-    
-    setChangeNotificationType('info');
-    setChangeNotificationMessage('Reverted to original code');
-    setShowChangeNotification(true);
-    
-    setDebuggingData(prev => ({ ...prev, showFixedCode: false }));
   };
 
   const optimizeCode = async () => {
+    setLayout('split'); // Auto-switch to split view
+    setAnalysisType('optimize');
+    
     const code = getEditorValue();
     const language = getEditorLanguage();
     
-    const prompt = `Optimize the following ${language} code. Provide only the optimized version of the code without any analysis or explanation.
+    const prompt = `Optimize the following ${language} code. Provide both the optimized code and detailed analysis.
 
 Code:
 \`\`\`${language}
@@ -477,57 +488,29 @@ ${code}
 \`\`\`
 
 Format your response like this:
+=== OPTIMIZATION ANALYSIS ===
+[Detailed explanation of optimizations]
+
 === OPTIMIZED CODE ===
-[Improved version of the code]`;
+\`\`\`${language}
+[Improved version of the code]
+\`\`\`
+
+=== PERFORMANCE GAINS ===
+[Expected performance improvements]`;
     
     const result = await callGeminiAPI(prompt, 'optimize');
     if (result) {
       setOriginalCodeBeforeOptimization(getEditorValue());
       setOptimizedCode(result);
-      setShowOptimizedCode(true);
-      setOptimizationView('code');
-      setOutput("Optimized code generated. Switch to 'Analysis' view to see optimization details.");
-      setDebuggingData(prev => ({ ...prev, showFixedCode: false }));
-    }
-  };
-
-  const getOptimizationAnalysis = async () => {
-    const code = originalCodeBeforeOptimization || getEditorValue();
-    const language = getEditorLanguage();
-    
-    const prompt = `Analyze the optimizations for the following ${language} code. Provide:
-1. Detailed explanation of optimizations made compared to the original code
-2. Performance comparison (time/space complexity)
-3. Alternative approaches if applicable
-
-Original Code:
-\`\`\`${language}
-${code}
-\`\`\`
-
-Optimized Code:
-\`\`\`${language}
-${optimizedCode}
-\`\`\`
-
-Format your response like this:
-=== OPTIMIZATION ANALYSIS ===
-[Explanation of current code's inefficiencies]
-
-=== PERFORMANCE GAINS ===
-[Comparison of before/after performance]
-
-=== ALTERNATIVE APPROACHES ===
-[Other possible optimization strategies]`;
-    
-    const result = await callGeminiAPI(prompt, 'optimizeAnalysis');
-    if (result) {
-      setOptimizationAnalysis(result);
-      setOptimizationView('analysis');
+      setAnalysisResult(`=== OPTIMIZATION ANALYSIS ===\nCode has been optimized for better performance and readability.\n\n=== OPTIMIZED CODE ===\n\`\`\`${getEditorLanguage()}\n${result}\n\`\``);
     }
   };
 
   const fullAnalysis = async () => {
+    setLayout('split'); // Auto-switch to split view
+    setAnalysisType('analyze');
+    
     const code = getEditorValue();
     const language = getEditorLanguage();
     
@@ -566,57 +549,41 @@ Format your response like this:
     
     const result = await callGeminiAPI(prompt, 'analyze');
     if (result) {
-      setOutput(result);
-      setShowOptimizedCode(false);
-      setDebuggingData(prev => ({ ...prev, showFixedCode: false }));
+      setAnalysisResult(result);
+      setError(null);
     }
+  };
+
+  // Utility functions
+  const showNotification = (type: 'success' | 'error' | 'warning' | 'info', message: string) => {
+    setChangeNotificationType(type);
+    setChangeNotificationMessage(message);
+    setShowChangeNotification(true);
   };
 
   const copyCode = () => {
     navigator.clipboard.writeText(getEditorValue());
-    setChangeNotificationType('success');
-    setChangeNotificationMessage('Code copied to clipboard!');
-    setShowChangeNotification(true);
+    showNotification('success', 'Code copied to clipboard!');
   };
 
   const copyOptimizedCode = () => {
     navigator.clipboard.writeText(optimizedCode);
-    setChangeNotificationType('success');
-    setChangeNotificationMessage('Optimized code copied to clipboard!');
-    setShowChangeNotification(true);
+    showNotification('success', 'Optimized code copied to clipboard!');
   };
 
   const copyFixedCode = () => {
     navigator.clipboard.writeText(debuggingData.fixedCode);
-    setChangeNotificationType('success');
-    setChangeNotificationMessage('Fixed code copied to clipboard!');
-    setShowChangeNotification(true);
+    showNotification('success', 'Fixed code copied to clipboard!');
   };
 
   const downloadCode = () => {
-    let extension;
+    let extension: string;
     
     switch (activeTab) {
-      case 'python': 
-        extension = 'py';
-        break;
-      case 'c': 
-        extension = 'c';
-        break;
-      case 'java': 
-        extension = 'java';
-        break;
-      case 'html':
-        extension = 'html';
-        break;
-      case 'css':
-        extension = 'css';
-        break;
-      case 'js':
-        extension = 'js';
-        break;
-      default: 
-        extension = 'txt';
+      case 'python': extension = 'py'; break;
+      case 'c': extension = 'c'; break;
+      case 'java': extension = 'java'; break;
+      default: extension = 'txt';
     }
     
     const element = document.createElement('a');
@@ -628,626 +595,313 @@ Format your response like this:
     document.body.removeChild(element);
   };
 
-  const downloadFullProject = () => {
-    alert('Download project functionality would create a ZIP with all language files');
-  };
-
-  const downloadOptimizedCode = () => {
-    let extension;
-    
-    switch (activeTab) {
-      case 'python': 
-        extension = 'py';
-        break;
-      case 'c': 
-        extension = 'c';
-        break;
-      case 'java': 
-        extension = 'java';
-        break;
-      case 'html':
-        extension = 'html';
-        break;
-      case 'css':
-        extension = 'css';
-        break;
-      case 'js':
-        extension = 'js';
-        break;
-      default: 
-        extension = 'txt';
+  const applyOptimizedCode = () => {
+    if (!optimizedCode) {
+      showNotification('error', 'No optimized code available to apply');
+      return;
     }
     
-    const element = document.createElement('a');
-    const file = new Blob([optimizedCode], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = `optimized_code.${extension}`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
-
-  const downloadFixedCode = () => {
-    let extension;
-    
     switch (activeTab) {
-      case 'python': 
-        extension = 'py';
-        break;
-      case 'c': 
-        extension = 'c';
-        break;
-      case 'java': 
-        extension = 'java';
-        break;
-      case 'html':
-        extension = 'html';
-        break;
-      case 'css':
-        extension = 'css';
-        break;
-      case 'js':
-        extension = 'js';
-        break;
-      default: 
-        extension = 'txt';
+      case 'python': setPythonCode(optimizedCode); break;
+      case 'c': setCCode(optimizedCode); break;
+      case 'java': setJavaCode(optimizedCode); break;
     }
     
-    const element = document.createElement('a');
-    const file = new Blob([debuggingData.fixedCode], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = `fixed_code.${extension}`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    showNotification('success', 'Changes applied successfully!');
+    
+    if (autoRun) {
+      setTimeout(() => runCode(), 100);
+    }
+    
+    setShowOptimizedCode(false);
+  };
+
+  const applyDebuggedCode = () => {
+    if (!debuggingData.fixedCode) {
+      showNotification('error', 'No fixed code available to apply');
+      return;
+    }
+    
+    switch (activeTab) {
+      case 'python': setPythonCode(debuggingData.fixedCode); break;
+      case 'c': setCCode(debuggingData.fixedCode); break;
+      case 'java': setJavaCode(debuggingData.fixedCode); break;
+    }
+    
+    showNotification('success', 'Debugged code applied successfully!');
+    
+    setDebuggingData(prev => ({ ...prev, showFixedCode: false }));
+    
+    if (autoRun) {
+      setTimeout(() => runCode(), 100);
+    }
+  };
+
+  const revertChanges = () => {
+    if (!originalCodeBeforeOptimization) {
+      showNotification('warning', 'No original code to revert to');
+      return;
+    }
+    
+    switch (activeTab) {
+      case 'python': setPythonCode(originalCodeBeforeOptimization); break;
+      case 'c': setCCode(originalCodeBeforeOptimization); break;
+      case 'java': setJavaCode(originalCodeBeforeOptimization); break;
+    }
+    
+    showNotification('info', 'Reverted to original code');
+    setShowOptimizedCode(false);
+  };
+
+  const revertDebuggedChanges = () => {
+    if (!debuggingData.originalCodeBeforeDebugging) {
+      showNotification('warning', 'No original code to revert to');
+      return;
+    }
+    
+    switch (activeTab) {
+      case 'python': setPythonCode(debuggingData.originalCodeBeforeDebugging); break;
+      case 'c': setCCode(debuggingData.originalCodeBeforeDebugging); break;
+      case 'java': setJavaCode(debuggingData.originalCodeBeforeDebugging); break;
+    }
+    
+    showNotification('info', 'Reverted to original code');
+    setDebuggingData(prev => ({ ...prev, showFixedCode: false }));
   };
 
   const toggleInputPanel = () => {
     setShowInputPanel(!showInputPanel);
   };
 
-  const applyOptimizedCode = () => {
-    if (!optimizedCode) {
-      setChangeNotificationType('error');
-      setChangeNotificationMessage('No optimized code available to apply');
-      setShowChangeNotification(true);
-      return;
-    }
-    
-    switch (activeTab) {
-      case 'python':
-        setPythonCode(optimizedCode);
-        break;
-      case 'c':
-        setCCode(optimizedCode);
-        break;
-      case 'java':
-        setJavaCode(optimizedCode);
-        break;
-      case 'html':
-        setHtmlCode(optimizedCode);
-        break;
-      case 'css':
-        setCssCode(optimizedCode);
-        break;
-      case 'js':
-        setJsCode(optimizedCode);
-        break;
-    }
-    
-    setChangeNotificationType('success');
-    setChangeNotificationMessage('Changes applied successfully!');
-    setShowChangeNotification(true);
-    
-    if (autoRun) {
-      setTimeout(() => {
-        runCode();
-      }, 100);
-    }
-    
-    setShowOptimizedCode(false);
-  };
-
-  const revertChanges = () => {
-    if (!originalCodeBeforeOptimization) {
-      setChangeNotificationType('warning');
-      setChangeNotificationMessage('No original code to revert to');
-      setShowChangeNotification(true);
-      return;
-    }
-    
-    switch (activeTab) {
-      case 'python':
-        setPythonCode(originalCodeBeforeOptimization);
-        break;
-      case 'c':
-        setCCode(originalCodeBeforeOptimization);
-        break;
-      case 'java':
-        setJavaCode(originalCodeBeforeOptimization);
-        break;
-      case 'html':
-        setHtmlCode(originalCodeBeforeOptimization);
-        break;
-      case 'css':
-        setCssCode(originalCodeBeforeOptimization);
-        break;
-      case 'js':
-        setJsCode(originalCodeBeforeOptimization);
-        break;
-    }
-    
-    setChangeNotificationType('info');
-    setChangeNotificationMessage('Reverted to original code');
-    setShowChangeNotification(true);
-    
-    setShowOptimizedCode(false);
-  };
-
-  const compareCode = () => {
-    setOutput(`=== ORIGINAL CODE ===\n${originalCodeBeforeOptimization}\n\n=== OPTIMIZED CODE ===\n${optimizedCode}`);
-    setOptimizationView('analysis');
-  };
-
-  const toggleDebugView = (view) => {
+  const toggleDebugView = (view: 'analysis' | 'code') => {
     setDebuggingData(prev => ({ ...prev, debugView: view }));
   };
 
-  // Toggle the category dropdown
-  const toggleCategoryDropdown = () => {
-    setShowCategoryDropdown(!showCategoryDropdown);
-  };
+  // Loading state
+  if (!isClient) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading playground...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Switch to a different category
-  const switchCategory = (category) => {
-    setActiveCategory(category);
-    setShowCategoryDropdown(false);
-  };
+  const mainContentHeight = showConsole ? `${playgroundHeight - 80 - consoleHeight}px` : `${playgroundHeight - 80}px`;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header */}
-        <div className="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-lg font-semibold text-gray-800">AI Code Playground (Gemini Powered)</h2>
-            <select
-              value={theme}
-              onChange={(e) => setTheme(e.target.value)}
-              className="bg-white text-black text-sm border rounded px-2 py-1"
-            >
-              <option value="vs-dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="autoRun"
-                checked={autoRun}
-                onChange={() => setAutoRun(!autoRun)}
-                className="mr-1"
-              />
-              <label htmlFor="autoRun" className="text-sm text-gray-700">Auto-run</label>
-              <button 
-                onClick={downloadFullProject}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-sm"
-                title="Download Full Project"
-              >
-                <Save size={14} />
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <button 
-              onClick={() => setLayout('split')}
-              className={`p-1 rounded ${layout === 'split' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-200'}`}
-              title="Split View"
-            >
-              <Layout size={18} />
-            </button>
-            <button 
-              onClick={() => setLayout('editor')}
-              className={`p-1 rounded ${layout === 'editor' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-200'}`}
-              title="Editor Only"
-            >
-              <Code size={18} />
-            </button>
-            <button 
-              onClick={() => setLayout('preview')}
-              className={`p-1 rounded ${layout === 'preview' ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-200'}`}
-              title="Preview Only"
-            >
-              <Monitor size={18} />
-            </button>
-          </div>
-        </div>
+    <div className="bg-gray-50 flex flex-col select-none">
+      <style>{`
+        /* Universal minimalistic scrollbar design */
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
         
-        {/* Category and Language Tabs */}
-        <div className="bg-white border-b flex items-center p-2">
-          {/* Category Selector */}
-          <div className="relative mr-4">
-            <button 
-              onClick={toggleCategoryDropdown}
-              className="flex items-center space-x-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-1 px-3 rounded"
-            >
-              <span>{activeCategory === 'programming' ? 'Programming' : 'Web'}</span>
-              <ChevronDown size={14} />
-            </button>
-            
-            {showCategoryDropdown && (
-              <div className="absolute top-full left-0 mt-1 bg-white border rounded shadow-lg z-10">
-                <button 
-                  onClick={() => switchCategory('programming')}
-                  className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${activeCategory === 'programming' ? 'bg-indigo-50 text-indigo-700' : ''}`}
-                >
-                  Programming
-                </button>
-                <button 
-                  onClick={() => switchCategory('web')}
-                  className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${activeCategory === 'web' ? 'bg-indigo-50 text-indigo-700' : ''}`}
-                >
-                  Web
-                </button>
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background-color: #cbd5e1;
+          border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background-color: #94a3b8;
+        }
+        
+        ::-webkit-scrollbar-corner {
+          background: transparent;
+        }
+        
+        /* Firefox scrollbar */
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
+        }
+      `}</style>
+      
+      {/* Main playground container with dynamic height */}
+      <div 
+        ref={playgroundRef} 
+        className="bg-gray-50 flex flex-col select-none border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+        style={{ height: `${playgroundHeight}px` }}
+      >
+        <PlaygroundHeader 
+          autoRun={autoRun}
+          setAutoRun={setAutoRun}
+          layout={layout}
+          setLayout={setLayout}
+          showConsole={showConsole}
+          setShowConsole={setShowConsole}
+        />
+
+        <div className="flex-1 flex overflow-hidden" style={{ height: mainContentHeight }}>
+          {/* Editor Pane */}
+          <EditorPane 
+            activeTab={activeTab as 'python' | 'c' | 'java'}
+            setActiveTab={setActiveTab}
+            pythonCode={pythonCode}
+            cCode={cCode}
+            javaCode={javaCode}
+            runCode={runCode}
+            debugCode={debugCode}
+            optimizeCode={optimizeCode}
+            fullAnalysis={fullAnalysis}
+            autoRun={autoRun}
+            isLoading={isLoading}
+            layout={layout}
+            handleEditorDidMount={handleEditorDidMount}
+            handleEditorChange={handleEditorChange}
+            width={layout === 'split' ? `${editorWidth}%` : '100%'}
+          />
+
+          {/* Resizer */}
+          {layout === 'split' && (
+            <div
+              className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors flex-shrink-0 active:bg-blue-600"
+              onMouseDown={startHorizontalResize}
+              style={{ 
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+            />
+          )}
+
+          {/* Analysis Pane - Only show in split layout */}
+          {layout === 'split' && (
+            <div className="flex flex-col bg-white shadow-sm" style={{ width: `${100 - editorWidth}%` }}>
+              {/* Analysis header */}
+              <div className="flex items-center justify-between bg-gray-100 px-3 py-2 border-b">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    analysisType === 'output' ? 'bg-green-500' :
+                    analysisType === 'debug' ? 'bg-yellow-500' :
+                    analysisType === 'optimize' ? 'bg-blue-500' :
+                    'bg-purple-500'
+                  }`}></div>
+                  <span className="text-sm font-medium text-gray-700">
+                    {analysisType === 'output' ? 'Code Output' :
+                     analysisType === 'debug' ? 'Debug Analysis' :
+                     analysisType === 'optimize' ? 'Code Optimization' :
+                     'Full Analysis'}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="text-xs text-gray-500">AI-Powered</div>
+                  <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
+                </div>
               </div>
-            )}
-          </div>
-          
-          {/* Language Tabs */}
-          <div className="flex space-x-1">
-            {activeCategory === 'programming' ? (
-              <>
-                <button 
-                  onClick={() => setActiveTab('python')}
-                  className={`px-3 py-1 rounded-md text-sm ${activeTab === 'python' ? 'bg-indigo-100 text-black' : 'hover:bg-gray-100'}`}
-                >
-                  Python
-                </button>
-                <button 
-                  onClick={() => setActiveTab('c')}
-                  className={`px-3 py-1  rounded-md text-sm ${activeTab === 'c' ? 'bg-indigo-100 text-black' : 'hover:bg-gray-100'}`}
-                >
-                  C
-                </button>
-                <button 
-                  onClick={() => setActiveTab('java')}
-                  className={`px-3 py-1 rounded-md text-sm ${activeTab === 'java' ? 'bg-indigo-100 text-black' : 'hover:bg-gray-100'}`}
-                >
-                  Java
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  onClick={() => setActiveTab('html')}
-                  className={`px-3 py-1 rounded-md text-sm ${activeTab === 'html' ? 'bg-indigo-100 text-black' : 'hover:bg-gray-100'}`}
-                >
-                  HTML
-                </button>
-                <button 
-                  onClick={() => setActiveTab('css')}
-                  className={`px-3 py-1 rounded-md text-sm ${activeTab === 'css' ? 'bg-indigo-100 text-black' : 'hover:bg-gray-100'}`}
-                >
-                  CSS
-                </button>
-                <button 
-                  onClick={() => setActiveTab('js')}
-                  className={`px-3 py-1 rounded-md text-sm ${activeTab === 'js' ? 'bg-indigo-100 text-black' : 'hover:bg-gray-100'}`}
-                >
-                  JavaScript
-                </button>
-              </>
-            )}
-          </div>
+              
+              {/* Analysis content */}
+              <div className="flex-1 overflow-hidden">
+                {isLoading ? (
+                  <div className="flex-1 flex items-center justify-center p-8">
+                    <div className="text-center">
+                      <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                      <div className="text-sm text-gray-600 font-medium">Analyzing your code...</div>
+                      <div className="text-xs text-gray-500 mt-1">Please wait while AI processes your request</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full overflow-y-auto p-4">
+                    <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-gray-700">
+                      {analysisResult || 'Run your code or use AI tools to see analysis results here.'}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Main Content */}
-        <div className="flex flex-col md:flex-row h-[calc(100vh-200px)]">
-          {/* Code Editor */}
-          {layout !== 'preview' && (
-            <div className={`${layout === 'split' ? 'w-full md:w-1/2' : 'w-full'} border-r`}>
-              <div className="flex items-center justify-between bg-gray-100 px-3 py-1 border-b">
-                <div className="text-sm font-medium">Code Editor</div>
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={runCode}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm flex items-center"
-                    disabled={isLoading}
-                  >
-                    <Play size={14} className="mr-1" />
-                    Run
-                  </button>
-                  <button 
-                    onClick={copyCode}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded-md text-sm"
-                    title="Copy Code"
-                  >
-                    <Copy size={14} />
-                  </button>
-                  <button 
-                    onClick={downloadCode}
-                    className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded-md text-sm"
-                    title="Download Code"
-                  >
-                    <Download size={14} />
-                  </button>
-                </div>
-              </div>
-              
-              <Editor
-                height="100%"
-                language={getEditorLanguage()}
-                value={getEditorValue()}
-                theme={theme}
-                onChange={handleEditorChange}
-                onMount={handleEditorDidMount}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  lineNumbers: 'on',
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                  tabSize: 2,
-                }}
-              />
-              
-              {showInputPanel && (
-                <div className="border-t p-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="userInput" className="text-sm font-medium">Input for Program:</label>
-                    <button 
-                      onClick={toggleInputPanel}
-                      className="text-gray-500 hover:text-gray-700 text-xs"
-                    >
-                      Hide
-                    </button>
-                  </div>
-                  <textarea
-                    id="userInput"
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    className="w-full h-20 p-2 border rounded text-sm font-mono"
-                    placeholder="Enter input for your program here..."
-                  />
-                </div>
-              )}
+        {/* Input Panel */}
+        {showInputPanel && (
+          <div className="border-t p-2 bg-white">
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="userInput" className="text-sm font-medium">Input for Program:</label>
+              <button 
+                onClick={toggleInputPanel}
+                className="text-gray-500 hover:text-gray-700 text-xs"
+              >
+                Hide
+              </button>
             </div>
-          )}
-          
-          {/* Output/Preview Panel */}
-          {layout !== 'editor' && (
-            <div className={`${layout === 'split' ? 'w-full md:w-1/2' : 'w-full'} flex flex-col`}>
-              <div className="flex items-center justify-between bg-gray-100 px-3 py-1 border-b">
-                <div className="text-sm font-medium">Output / Preview</div>
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={debugCode}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded-md text-sm flex items-center"
-                    disabled={isLoading}
-                  >
-                    <Bug size={14} className="mr-1" />
-                    Debug
-                  </button>
-                  <button 
-                    onClick={optimizeCode}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-md text-sm flex items-center"
-                    disabled={isLoading}
-                  >
-                    <Zap size={14} className="mr-1" />
-                    Optimize
-                  </button>
-                  <button 
-                    onClick={fullAnalysis}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded-md text-sm flex items-center"
-                    disabled={isLoading}
-                  >
-                    <Terminal size={14} className="mr-1" />
-                    Analyze
-                  </button>
-                </div>
-              </div>
-              
-              {isLoading ? (
-                <div className="flex-1 flex items-center justify-center bg-gray-50 p-4">
-                  <div className="text-center">
-                    <RefreshCw size={24} className="mx-auto mb-2 animate-spin text-indigo-600" />
-                    <p className="text-gray-600">Processing your code...</p>
-                  </div>
-                </div>
-              ) : showOptimizedCode ? (
-                <div className="flex-1 flex flex-col">
-                  <div className="bg-gray-100 px-3 py-1 flex justify-between items-center border-b">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => setOptimizationView('code')}
-                        className={`px-2 py-1 text-xs rounded ${optimizationView === 'code' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-200'}`}
-                      >
-                        Optimized Code
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (optimizationAnalysis) {
-                            setOptimizationView('analysis');
-                          } else {
-                            getOptimizationAnalysis();
-                          }
-                        }}
-                        className={`px-2 py-1 text-xs rounded ${optimizationView === 'analysis' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-200'}`}
-                      >
-                        Analysis
-                      </button>
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={applyOptimizedCode}
-                        className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs flex items-center"
-                        title="Apply Optimized Code"
-                      >
-                        <Check size={12} className="mr-1" />
-                        Apply
-                      </button>
-                      <button
-                        onClick={revertChanges}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded text-xs flex items-center"
-                        title="Revert Changes"
-                      >
-                        <RefreshCw size={12} className="mr-1" />
-                        Revert
-                      </button>
-                      <button
-                        onClick={copyOptimizedCode}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs"
-                        title="Copy Optimized Code"
-                      >
-                        <Copy size={12} />
-                      </button>
-                      <button
-                        onClick={downloadOptimizedCode}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs"
-                        title="Download Optimized Code"
-                      >
-                        <Download size={12} />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {optimizationView === 'code' ? (
-                    <Editor
-                      height="100%"
-                      language={getEditorLanguage()}
-                      value={optimizedCode}
-                      theme={theme}
-                      onMount={handleOptimizedEditorDidMount}
-                      options={{
-                        readOnly: true,
-                        minimap: { enabled: false },
-                        fontSize: 14,
-                        lineNumbers: 'on',
-                        scrollBeyondLastLine: false,
-                        automaticLayout: true,
-                      }}
-                    />
-                  ) : (
-                    <div className="flex-1 overflow-auto p-4 whitespace-pre-wrap font-mono text-sm bg-gray-50">
-                      {optimizationAnalysis || "Loading optimization analysis..."}
-                    </div>
-                  )}
-                </div>
-              ) : debuggingData.showFixedCode ? (
-                <div className="flex-1 flex flex-col">
-                  <div className="bg-gray-100 px-3 py-1 flex justify-between items-center border-b">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => toggleDebugView('analysis')}
-                        className={`px-2 py-1 text-xs rounded ${debuggingData.debugView === 'analysis' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-200'}`}
-                      >
-                        Debug Report
-                      </button>
-                      <button
-                        onClick={() => toggleDebugView('code')}
-                        className={`px-2 py-1 text-xs rounded ${debuggingData.debugView === 'code' ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-gray-200'}`}
-                      >
-                        Fixed Code
-                      </button>
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={applyDebuggedCode}
-                        className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs flex items-center"
-                        title="Apply Fixed Code"
-                      >
-                        <Check size={12} className="mr-1" />
-                        Apply
-                      </button>
-                      <button
-                        onClick={revertDebuggedChanges}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded text-xs flex items-center"
-                        title="Revert Changes"
-                      >
-                        <RefreshCw size={12} className="mr-1" />
-                        Revert
-                      </button>
-                      <button
-                        onClick={copyFixedCode}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs"
-                        title="Copy Fixed Code"
-                      >
-                        <Copy size={12} />
-                      </button>
-                      <button
-                        onClick={downloadFixedCode}
-                        className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs"
-                        title="Download Fixed Code"
-                      >
-                        <Download size={12} />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {debuggingData.debugView === 'analysis' ? (
-                    <div className="flex-1 overflow-auto p-4 whitespace-pre-wrap font-mono text-sm bg-gray-50">
-                      {debuggingData.analysis || "No debugging analysis available."}
-                    </div>
-                  ) : (
-                    <Editor
-                      height="100%"
-                      language={getEditorLanguage()}
-                      value={debuggingData.fixedCode}
-                      theme={theme}
-                      onMount={handleFixedCodeEditorDidMount}
-                      options={{
-                        readOnly: true,
-                        minimap: { enabled: false },
-                        fontSize: 14,
-                        lineNumbers: 'on',
-                        scrollBeyondLastLine: false,
-                        automaticLayout: true,
-                      }}
-                    />
-                  )}
-                </div>
-              ) : (
-                <div className="flex-1 overflow-auto p-4 bg-gray-50">
-                  {output.startsWith('<iframe') || output.startsWith('<div') ? (
-                    <div dangerouslySetInnerHTML={{ __html: output }} className="h-full" />
-                  ) : (
-                    <pre className="whitespace-pre-wrap font-mono text-sm">{output}</pre>
-                  )}
-                </div>
-              )}
-              
-              {(!showInputPanel && detectInputRequirement(getEditorValue(), getEditorLanguage())) && (
-                <div className="border-t py-1 px-2 bg-gray-50">
-                  <button 
-                    onClick={toggleInputPanel}
-                    className="text-indigo-600 hover:text-indigo-800 text-sm flex items-center"
-                  >
-                    <Terminal size={14} className="mr-1" />
-                    Show Input Panel
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        
-        {/* Notification */}
-        {showChangeNotification && (
-          <div className={`fixed bottom-4 right-4 px-4 py-2 rounded-md text-white flex items-center shadow-lg
-            ${changeNotificationType === 'success' ? 'bg-green-600' : 
-            changeNotificationType === 'error' ? 'bg-red-600' : 
-            changeNotificationType === 'warning' ? 'bg-yellow-600' : 'bg-blue-600'}`}
-          >
-            {changeNotificationType === 'success' && <Check size={18} className="mr-2" />}
-            {changeNotificationType === 'error' && <AlertTriangle size={18} className="mr-2" />}
-            {changeNotificationType === 'warning' && <AlertTriangle size={18} className="mr-2" />}
-            {changeNotificationType === 'info' && <Terminal size={18} className="mr-2" />}
-            {changeNotificationMessage}
+            <textarea
+              id="userInput"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              className="w-full h-20 p-2 border rounded text-sm font-mono"
+              placeholder="Enter input for your program here..."
+            />
           </div>
         )}
+
+        {/* Console resize handle */}
+        {showConsole && (
+          <div
+            className="h-1 bg-gray-300 hover:bg-blue-500 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-600"
+            onMouseDown={startVerticalResize}
+            style={{ 
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }}
+          />
+        )}
+
+        {/* Console */}
+        {showConsole && (
+          <ConsoleOutput 
+            output={output}
+            error={error}
+            setOutput={setOutput}
+            setError={setError}
+            outputRef={outputRef}
+            height={consoleHeight}
+          />
+        )}
       </div>
+
+      {/* Playground height resize handle - positioned at the bottom */}
+      <div
+        className="h-2 bg-gray-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-500 border-t border-gray-300 flex items-center justify-center group"
+        onMouseDown={startPlaygroundResize}
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none'
+        }}
+      >
+        {/* Visual indicator for resize handle */}
+        <div className="flex space-x-1 opacity-50 group-hover:opacity-75 transition-opacity">
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+        </div>
+      </div>
+
+      {/* Notification */}
+      {showChangeNotification && (
+        <div className={`fixed bottom-4 right-4 px-4 py-2 rounded-md text-white flex items-center shadow-lg
+          ${changeNotificationType === 'success' ? 'bg-green-600' : 
+          changeNotificationType === 'error' ? 'bg-red-600' : 
+          changeNotificationType === 'warning' ? 'bg-yellow-600' : 'bg-blue-600'}`}
+        >
+          {changeNotificationType === 'success' && <Check size={18} className="mr-2" />}
+          {changeNotificationType === 'error' && <AlertTriangle size={18} className="mr-2" />}
+          {changeNotificationType === 'warning' && <AlertTriangle size={18} className="mr-2" />}
+          {changeNotificationType === 'info' && <Terminal size={18} className="mr-2" />}
+          {changeNotificationMessage}
+        </div>
+      )}
     </div>
   );
 }

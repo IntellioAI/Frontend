@@ -4,7 +4,6 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import {
   Home,
-  Sparkles,
   Users,
   Wrench,
   UserCircle,
@@ -13,6 +12,8 @@ import {
   HelpCircle,
   BarChart3,
   Bell,
+  Code,
+  Globe,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,14 @@ const navigationItems = [
     icon: Home,
   },
   {
-    title: "AI Playground",
+    title: "Code Playground",
     to: "/playground",
-    icon: Sparkles,
+    icon: Code,
+  },
+  {
+    title: "Web Playground",
+    to: "/web-playground",
+    icon: Globe,
   },
   {
     title: "Faculty Dashboard",
@@ -137,13 +143,16 @@ export function SidebarStandalone({ className }: SidebarStandaloneProps) {
               key={item.to}
               to={item.to}
               className={cn(
-                "flex items-center space-x-3 px-3 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors group",
+                "flex items-center space-x-3 px-3 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors group relative",
                 isCollapsed && "justify-center"
               )}
+              title={isCollapsed ? item.title : undefined}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
               {!isCollapsed && (
-                <span className="text-sm font-medium">{item.title}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{item.title}</span>
+                </div>
               )}
             </Link>
           ))}
@@ -161,6 +170,7 @@ export function SidebarStandalone({ className }: SidebarStandaloneProps) {
                 "flex items-center space-x-3 px-3 py-2.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors",
                 isCollapsed && "justify-center"
               )}
+              title={isCollapsed ? item.title : undefined}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />
               {!isCollapsed && (

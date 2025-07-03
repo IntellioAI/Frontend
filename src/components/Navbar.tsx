@@ -5,10 +5,11 @@ import { Link } from "react-router-dom";
 import {
   ChevronDown,
   Menu,
-  Sparkles,
   Users,
   Wrench,
   UserCircle,
+  Code,
+  Globe,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,12 +25,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-
 const productItems = [
   {
-    title: "AI Playground",
+    title: "Code Playground",
     to: "/playground",
-    icon: Sparkles,
+    icon: Code,
+  },
+  {
+    title: "Web Playground",
+    to: "/web-playground",
+    icon: Globe,
   },
   {
     title: "Faculty Dashboard",
@@ -65,7 +70,7 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-6">
-            {/* Fixed Products Dropdown */}
+            {/* Enhanced Products Dropdown */}
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -77,7 +82,7 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-48 bg-black/90 backdrop-blur-md border border-gray-800/20 rounded-b-2xl rounded-t-none p-1 mt-1"
+                className="w-64 bg-black/90 backdrop-blur-md border border-gray-800/20 rounded-b-2xl rounded-t-none p-1 mt-1"
                 align="center"
                 sideOffset={4}
               >
@@ -85,10 +90,14 @@ export function Navbar() {
                   <DropdownMenuItem key={item.to} asChild>
                     <Link
                       to={item.to}
-                      className="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                      className="flex items-start space-x-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group"
                     >
-                      <item.icon className="h-4 w-4 text-white/60" />
-                      <span className="text-white text-sm">{item.title}</span>
+                      <div className="mt-0.5">
+                        <item.icon className="h-4 w-4 text-white/60 group-hover:text-white transition-colors" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-white text-sm font-medium">{item.title}</div>
+                      </div>
                     </Link>
                   </DropdownMenuItem>
                 ))}
@@ -132,8 +141,6 @@ export function Navbar() {
               side="right"
               className="bg-black/90 backdrop-blur-md border-gray-800/20 text-white w-72"
             >
-
-
               <div className="mt-8 space-y-0">
                 {/* Products Collapsible Section */}
                 <div className="py-2 -mb-2">
@@ -158,11 +165,15 @@ export function Navbar() {
                       <Link
                         key={item.to}
                         to={item.to}
-                        className="flex items-center space-x-2 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors text-base"
+                        className="flex items-start space-x-3 px-3 py-3 rounded-xl hover:bg-white/10 transition-colors text-base group"
                         onClick={() => setIsOpen(false)}
                       >
-                        <item.icon className="h-4 w-4 text-white/60" />
-                        <span className="text-white">{item.title}</span>
+                        <div className="mt-0.5">
+                          <item.icon className="h-4 w-4 text-white/60 group-hover:text-white transition-colors" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-white font-medium">{item.title}</div>
+                        </div>
                       </Link>
                     ))}
                   </div>

@@ -8,7 +8,8 @@ import { ThemeProvider } from "./context/ThemeContext";
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const Products = lazy(() => import('./pages/Products'));
-const Playground = lazy(() => import('./pages/Web_playground').then(module => ({ default: module.Web_Playground })));
+const WebPlayground = lazy(() => import('./pages/Web_playground').then(module => ({ default: module.Web_Playground })));
+const CodePlayground = lazy(() => import('./pages/Code_playground').then(module => ({ default: module.Playground })));
 
 // Import global styles
 import "./styles/global.css";
@@ -24,7 +25,7 @@ const LoadingFallback = () => (
 function AppLayout() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
-  const showSidebar = location.pathname === '/products' || location.pathname === '/Products' || location.pathname === '/playground';
+  const showSidebar = location.pathname === '/products' || location.pathname === '/Products' || location.pathname === '/playground' || location.pathname === '/web-playground';
 
   return (
     <div className="flex min-h-screen">
@@ -48,7 +49,8 @@ function AppLayout() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/Products" element={<Products />} />
-              <Route path="/playground" element={<Playground />} />
+              <Route path="/playground" element={<CodePlayground />} />
+              <Route path="/web-playground" element={<WebPlayground />} />
             </Routes>
           </Suspense>
         </main>
