@@ -8,7 +8,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 // Lazy load pages for better performance
 const Home = lazy(() => import('./pages/Home'));
 const Products = lazy(() => import('./pages/Products'));
-const Playground = lazy(() => import('./pages/web_Playground').then(module => ({ default: module.Web_Playground })));
+const Playground = lazy(() => import('./pages/Web_playground').then(module => ({ default: module.Web_Playground })));
 
 // Import global styles
 import "./styles/global.css";
