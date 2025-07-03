@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Navbar } from '../components/Navbar';
 import CodePlayground from '../components/playground/CodePlayground';
 import { Smartphone, Laptop } from 'lucide-react';
 import { isMobile, isSlowDevice, useReducedMotion } from '../utils/deviceDetection';
-
+import {SidebarStandalone} from '../components/sidebar';
 export function Playground() {
   // State for controlling animations and device-specific behavior
   const [shouldReduceMotion, setShouldReduceMotion] = useState(false);
@@ -19,8 +18,7 @@ export function Playground() {
 
   return (
     <main className="min-h-screen bg-black" style={{ backgroundColor: 'var(--background)' }}>
-      <Navbar />
-      
+      <SidebarStandalone/>
       {/* Header Section */}
       <section className="relative overflow-hidden pt-24 pb-16" style={{ background: 'var(--header-bg)' }}>
         {/* Background image */}
