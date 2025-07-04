@@ -231,7 +231,7 @@ export default function Products() {
     >
       {/* Header */}
       <section
-        className="relative overflow-hidden pt-16 md:pt-24 pb-12 md:pb-16"
+        className="relative overflow-hidden pt-8  pb-12 md:pb-16"
         style={{ background: "var(--header-bg)" }}
       >
         <div className="absolute inset-0 bg-[url('/images/products/products_hero.webp')] opacity-10 bg-cover bg-center"></div>

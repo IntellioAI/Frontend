@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, createContext, useContext, useState } from 'react';
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { SidebarStandalone } from "./components/sidebar";
@@ -14,6 +14,17 @@ const CodePlayground = lazy(() => import('./pages/Code_playground').then(module 
 // Import global styles
 import "./styles/global.css";
 
+// Sidebar context to manage sidebar state across components
+const SidebarContext = createContext<{
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
+}>({
+  isCollapsed: true,
+  setIsCollapsed: () => {},
+});
+
+export const useSidebar = () => useContext(SidebarContext);
+
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-black">
@@ -26,25 +37,30 @@ function AppLayout() {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
   const showSidebar = location.pathname === '/products' || location.pathname === '/Products' || location.pathname === '/playground' || location.pathname === '/web-playground';
+  const { isCollapsed } = useSidebar();
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-black overflow-hidden">
       {/* Conditional Sidebar */}
       {showSidebar && (
-        <div className="z-40">
+        <div className="z-40 flex-shrink-0">
           <SidebarStandalone />
         </div>
       )}
       
       {/* Main Content Area */}
-      <div className={`flex flex-col min-h-screen w-full transition-all duration-300 ${
-        showSidebar ? 'lg:ml-0' : ''
-      }`}>
+      <div 
+        className={`flex flex-col min-h-screen w-full transition-all duration-300 overflow-hidden ${
+          showSidebar 
+            ? `${isCollapsed ? 'ml-0' : 'ml-72'} lg:${isCollapsed ? 'ml-0' : 'ml-72'}` 
+            : ''
+        }`}
+      >
         {/* Conditional Navbar - only on home page */}
         {isHomePage && <Navbar />}
         
         {/* Main Content */}
-        <main className={`flex-grow ${showSidebar ? 'overflow-hidden' : ''}`}>
+        <main className={`flex-grow ${showSidebar ? 'overflow-auto' : 'overflow-auto'}`}>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -62,12 +78,16 @@ function AppLayout() {
   );
 }
 
-function App() {  
+function App() {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
   return (
     <ThemeProvider>
-      <Router>
-        <AppLayout />
-      </Router>
+      <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
+        <Router>
+          <AppLayout />
+        </Router>
+      </SidebarContext.Provider>
     </ThemeProvider>
   );
 }
