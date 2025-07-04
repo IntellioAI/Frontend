@@ -1,26 +1,21 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect, useCallback } from "react"
-import { Check, AlertTriangle, Terminal } from "lucide-react"
 import type { editor } from "monaco-editor"
 
-// Import components
+// Import enhanced components
 import PlaygroundHeader from "./PlaygroundHeader"
 import EditorPane from "./EditorPane"
 import ConsolePanel from "./ConsolePanel"
 import AnalysisPane from "./AnalysisPane"
-import { formatAIResponse } from "./AIFormatter"
+import { formatAIResponse } from "./aiFormatterUtils"
 
-// Use environment variable for the API key.
-// • Vite → `import.meta.env.VITE_GEMINI_API_KEY`
-// • Next → `process.env.NEXT_PUBLIC_GEMINI_API_KEY`
-// Guard the access so neither path crashes when it’s undefined.
+// Use environment variable for the API key
 const GEMINI_API_KEY =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_GEMINI_API_KEY) ||
   (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_GEMINI_API_KEY) ||
-  "" // fallback (empty string) so later checks handle “missing key” gracefully
+  ""
 
 interface CodePlaygroundProps {
   isMobileDevice?: boolean
@@ -28,13 +23,113 @@ interface CodePlaygroundProps {
 
 export default function CodePlayground({ isMobileDevice = false }: CodePlaygroundProps) {
   // Code states for programming languages
-  const [pythonCode, setPythonCode] = useState('# Python code\nprint("Hello World!")')
-  const [cCode, setCCode] = useState(
-    '// C code\n#include <stdio.h>\n\nint main() {\n    printf("Hello World!\\n");\n    return 0;\n}',
-  )
-  const [javaCode, setJavaCode] = useState(
-    '// Java code\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello World!");\n    }\n}',
-  )
+  const [pythonCode, setPythonCode] = useState(`# Python Example - Fibonacci Calculator
+def fibonacci(n):
+    """Calculate the nth Fibonacci number"""
+    if n <= 0:
+        return "Please enter a positive integer"
+    elif n == 1:
+        return 0
+    elif n == 2:
+        return 1
+    else:
+        a, b = 0, 1
+        for _ in range(2, n):
+            a, b = b, a + b
+        return b
+
+# Test the function
+number = 10
+result = fibonacci(number)
+print(f"The {number}th Fibonacci number is: {result}")
+
+# Interactive input example
+# user_input = int(input("Enter a number: "))
+# print(f"Fibonacci of {user_input} is {fibonacci(user_input)}")`)
+
+  const [cCode, setCCode] = useState(`// C Example - Array Operations
+#include <stdio.h>
+#include <stdlib.h>
+
+void bubbleSort(int arr[], int n) {
+    for (int i = 0; i < n-1; i++) {
+        for (int j = 0; j < n-i-1; j++) {
+            if (arr[j] > arr[j+1]) {
+                // Swap elements
+                int temp = arr[j];
+                arr[j] = arr[j+1];
+                arr[j+1] = temp;
+            }
+        }
+    }
+}
+
+void printArray(int arr[], int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\\n");
+}
+
+int main() {
+    int arr[] = {64, 34, 25, 12, 22, 11, 90};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    
+    printf("Original array: ");
+    printArray(arr, n);
+    
+    bubbleSort(arr, n);
+    
+    printf("Sorted array: ");
+    printArray(arr, n);
+    
+    return 0;
+}`)
+
+  const [javaCode, setJavaCode] = useState(`// Java Example - Object-Oriented Calculator
+public class Calculator {
+    private String name;
+    
+    public Calculator(String name) {
+        this.name = name;
+    }
+    
+    public double add(double a, double b) {
+        return a + b;
+    }
+    
+    public double subtract(double a, double b) {
+        return a - b;
+    }
+    
+    public double multiply(double a, double b) {
+        return a * b;
+    }
+    
+    public double divide(double a, double b) {
+        if (b == 0) {
+            throw new IllegalArgumentException("Cannot divide by zero!");
+        }
+        return a / b;
+    }
+    
+    public static void main(String[] args) {
+        Calculator calc = new Calculator("Scientific Calculator");
+        
+        System.out.println("=== " + calc.name + " ===");
+        System.out.println("Addition: 10 + 5 = " + calc.add(10, 5));
+        System.out.println("Subtraction: 10 - 5 = " + calc.subtract(10, 5));
+        System.out.println("Multiplication: 10 * 5 = " + calc.multiply(10, 5));
+        System.out.println("Division: 10 / 5 = " + calc.divide(10, 5));
+        
+        // Example with error handling
+        try {
+            System.out.println("Division by zero: " + calc.divide(10, 0));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}`)
 
   const [activeTab, setActiveTab] = useState("python")
   const [layout, setLayout] = useState<"split" | "editor">("editor")
@@ -62,18 +157,11 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
   const [analysisType, setAnalysisType] = useState<"output" | "debug" | "optimize" | "analyze">("output")
   const [analysisResult, setAnalysisResult] = useState("")
 
-  // Notification states
-  const [showChangeNotification, setShowChangeNotification] = useState(false)
-  const [changeNotificationType] = useState<"success" | "error" | "warning" | "info">(
-    "success",
-  )
-  const [changeNotificationMessage] = useState("")
-
   // Resizer states
   const [isResizing, setIsResizing] = useState(false)
   const [resizeType, setResizeType] = useState<"horizontal" | "vertical" | "playground" | null>(null)
   const [editorWidth, setEditorWidth] = useState(50)
-  const [consoleHeight, setConsoleHeight] = useState(250)
+  const [consoleHeight, setConsoleHeight] = useState(180)
   const [playgroundHeight, setPlaygroundHeight] = useState(700)
 
   // Refs
@@ -86,7 +174,7 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
     width: number
     height: number
     playgroundHeight: number
-  }>({ width: 50, height: 250, playgroundHeight: 700 })
+  }>({ width: 50, height: 180, playgroundHeight: 700 })
 
   // Initialize client-side
   useEffect(() => {
@@ -94,26 +182,18 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
     if (!GEMINI_API_KEY) {
       addConsoleMessage(
         "warning",
-        "Warning: Gemini API key not found. Please add NEXT_PUBLIC_GEMINI_API_KEY to your environment variables.",
+        "⚠️ Gemini API key not found. Add NEXT_PUBLIC_GEMINI_API_KEY to your environment variables.",
       )
     } else {
-      addConsoleMessage("info", "AI Code Playground ready! Type your code and use AI tools for analysis.")
+      addConsoleMessage("success", "🤖 AI Code Playground ready! Select a programming language and start coding.")
     }
 
     if (isMobileDevice) {
       setLayout("editor")
-      setConsoleHeight(200)
+      setConsoleHeight(160)
       setPlaygroundHeight(650)
     }
   }, [isMobileDevice])
-
-  // Handle notification auto-hide
-  useEffect(() => {
-    if (showChangeNotification) {
-      const timer = setTimeout(() => setShowChangeNotification(false), 3000)
-      return () => clearTimeout(timer)
-    }
-  }, [showChangeNotification])
 
   // Scroll console to bottom when new messages arrive
   useEffect(() => {
@@ -130,7 +210,7 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
 
   const clearConsole = () => {
     setConsoleOutput([])
-    addConsoleMessage("info", "Console cleared")
+    addConsoleMessage("info", "🧹 Console cleared")
   }
 
   const handleInputSubmit = () => {
@@ -143,9 +223,9 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
     if (waitingForInput) {
       setProgramInput((prev) => [...prev, currentInput])
       setWaitingForInput(false)
-      addConsoleMessage("info", "Input provided to program")
+      addConsoleMessage("success", "✅ Input provided to program")
     } else {
-      addConsoleMessage("info", `Command executed: ${currentInput}`)
+      addConsoleMessage("info", `💬 Command executed: ${currentInput}`)
     }
 
     setCurrentInput("")
@@ -173,33 +253,28 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
           setCurrentInput(inputHistory[newIndex])
         }
       }
+    } else if (e.key === "Escape") {
+      setCurrentInput("")
+      setHistoryIndex(-1)
     }
   }
 
   // Editor helper functions
   const getEditorLanguage = () => {
     switch (activeTab) {
-      case "python":
-        return "python"
-      case "c":
-        return "c"
-      case "java":
-        return "java"
-      default:
-        return "python"
+      case "python": return "python"
+      case "c": return "c"
+      case "java": return "java"
+      default: return "python"
     }
   }
 
   const getEditorValue = () => {
     switch (activeTab) {
-      case "python":
-        return pythonCode
-      case "c":
-        return cCode
-      case "java":
-        return javaCode
-      default:
-        return pythonCode
+      case "python": return pythonCode
+      case "c": return cCode
+      case "java": return javaCode
+      default: return pythonCode
     }
   }
 
@@ -219,15 +294,9 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
     if (value === undefined) return
 
     switch (activeTab) {
-      case "python":
-        setPythonCode(value)
-        break
-      case "c":
-        setCCode(value)
-        break
-      case "java":
-        setJavaCode(value)
-        break
+      case "python": setPythonCode(value); break
+      case "c": setCCode(value); break
+      case "java": setJavaCode(value); break
     }
 
     if (autoRun) {
@@ -235,7 +304,7 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
     }
   }
 
-  // Resizer handlers
+  // Enhanced resizer handlers
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing || !playgroundRef.current) return
@@ -247,15 +316,15 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
         const containerWidth = rect.width
         const deltaPercent = (deltaX / containerWidth) * 100
         const newWidth = resizeStartDimensions.current.width + deltaPercent
-        setEditorWidth(Math.max(35, Math.min(70, newWidth)))
+        setEditorWidth(Math.max(30, Math.min(70, newWidth)))
       } else if (resizeType === "vertical") {
         const deltaY = resizeStartPosition.current.y - e.clientY
         const newHeight = resizeStartDimensions.current.height + deltaY
-        setConsoleHeight(Math.max(150, Math.min(500, newHeight)))
+        setConsoleHeight(Math.max(120, Math.min(400, newHeight)))
       } else if (resizeType === "playground") {
         const deltaY = e.clientY - resizeStartPosition.current.y
         const newHeight = resizeStartDimensions.current.playgroundHeight + deltaY
-        setPlaygroundHeight(Math.max(600, newHeight))
+        setPlaygroundHeight(Math.max(600, Math.min(1200, newHeight)))
       }
     },
     [isResizing, resizeType],
@@ -296,10 +365,10 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
     }
   }, [isResizing, handleMouseMove, handleMouseUp])
 
-  // API call function
+  // Enhanced API call function
   const callGeminiAPI = async (prompt: string, outputMode: string) => {
     if (!GEMINI_API_KEY) {
-      addConsoleMessage("error", "Error: Gemini API key is missing.")
+      addConsoleMessage("error", "❌ Gemini API key is missing.")
       return null
     }
     setIsLoading(true)
@@ -326,33 +395,8 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
       }
 
       const fullResponse = data.candidates[0].content.parts[0].text
-      let processedResponse = ""
-
-      if (outputMode === "run") {
-        const outputSection = extractSection(fullResponse, "EXPECTED OUTPUT")
-        processedResponse = outputSection || "No output was generated."
-        if (programInput.length > 0) {
-          const inputSection = extractSection(fullResponse, "INPUT HANDLING")
-          if (inputSection) {
-            processedResponse = `=== INPUT ===\n${programInput.join("\n")}\n\n=== OUTPUT ===\n${processedResponse}`
-          }
-        }
-        addConsoleMessage("success", "✅ Code execution completed")
-      } else if (outputMode === "debug") {
-        const debuggingReport = extractSection(fullResponse, "DEBUGGING REPORT")
-        const fixedCode = extractSection(fullResponse, "FIXED CODE")
-        addConsoleMessage("success", "🐛 Debug analysis completed")
-        return { analysis: debuggingReport, fixedCode: fixedCode }
-      } else if (outputMode === "optimize") {
-        const optimizedCode = extractSection(fullResponse, "OPTIMIZED CODE")
-        addConsoleMessage("success", "⚡ Code optimization completed")
-        return optimizedCode || "No optimized code was generated."
-      } else if (outputMode === "analyze") {
-        processedResponse = fullResponse
-        addConsoleMessage("success", "📊 Full analysis completed")
-      }
-
-      return processedResponse || fullResponse
+      addConsoleMessage("success", `✅ AI ${outputMode} analysis completed`)
+      return fullResponse
     } catch (error) {
       let errorMessage = "An unknown error occurred"
       if (error instanceof Error) {
@@ -368,22 +412,8 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
     }
   }
 
-  const extractSection = (text: string, sectionName: string) => {
-    const regex = new RegExp(`===\\s*${sectionName}\\s*===\\s*([\\s\\S]*?)(?:===\\s*|$)`, "i")
-    const match = text.match(regex)
 
-    if (sectionName.includes("CODE")) {
-      const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g
-      const codeMatches = text.matchAll(codeBlockRegex)
-      for (const codeMatch of codeMatches) {
-        return codeMatch[1]
-      }
-    }
-
-    return match ? match[1].trim() : null
-  }
-
-  // Code execution functions
+  // Enhanced code execution functions
   const detectInputRequirement = (code: string, language: string) => {
     if (language === "python") {
       return code.includes("input(") || code.includes("raw_input(")
@@ -406,23 +436,26 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
     if (requiresInput && programInput.length === 0) {
       setAnalysisResult(
         formatAIResponse(
-          `
-        === INPUT REQUIRED ===
-        This code appears to require user input. Please provide input using the console below:
-        
-        **How to provide input:**
-        - Type your input values in the console
-        - Press Enter to submit each input
-        - Run the code again after providing input
-        
-        **Input Methods Detected:**
-        ${
-          language === "python"
-            ? "• input() function calls"
-            : language === "c"
-              ? "• scanf() or gets() function calls"
-              : "• Scanner or System.in usage"
-        }
+          `### Input Required
+
+This code appears to require user input. Please provide input using the console below:
+
+**How to provide input:**
+- Type your input values in the console
+- Press Enter to submit each input
+- Run the code again after providing input
+
+**Input Methods Detected:**
+${
+  language === "python"
+    ? "• `input()` function calls"
+    : language === "c"
+      ? "• `scanf()` or `gets()` function calls"
+      : "• `Scanner` or `System.in` usage"
+}
+
+**Example:**
+If your code asks for a number, simply type \`42\` in the console and press Enter.
       `,
           "output",
         ),
@@ -433,35 +466,35 @@ export default function CodePlayground({ isMobileDevice = false }: CodePlaygroun
       return
     }
 
-    const prompt = `You are a ${language} code analyzer and executor. Please:
-1. Check if this code is syntactically correct
-2. If correct, run this code ${programInput.length > 0 ? `with the following input: "${programInput.join("\\n")}"` : "without any input"}
-3. Show the expected output with proper formatting
-4. If incorrect, explain the errors and how to fix them
-5. Provide a corrected version if there are errors
+    const prompt = `You are an expert ${language} code analyzer and executor. Please analyze and execute this code:
 
-Code:
+${programInput.length > 0 ? `**User Input Provided:** ${programInput.join(", ")}` : ""}
+
+**Code to Analyze:**
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Format your response like this:
+Please provide a comprehensive analysis in the following format:
+
 === CODE ANALYSIS ===
-[Brief assessment of code correctness and quality]
+Brief assessment of code correctness, quality, and functionality.
 
 === EXPECTED OUTPUT ===
-[Actual program output or error messages if incorrect]
+Show the exact output this code would produce when executed.
 
-=== INPUT HANDLING ===
-[If the code requires input, explain how the input was processed]
+=== EXECUTION FLOW ===
+Step-by-step explanation of how the code executes.
 
-=== EXECUTION DETAILS ===
-[Step-by-step execution flow and any important notes]
+=== CODE QUALITY ===
+Assessment of coding practices, efficiency, and potential improvements.
 
-=== SUGGESTED IMPROVEMENTS ===
-[If errors exist or improvements possible, provide specific suggestions]`
+=== EDUCATIONAL INSIGHTS ===
+Key programming concepts demonstrated in this code.
 
-    const result = await callGeminiAPI(prompt, "run")
+Make your response educational and detailed. Use proper formatting with headers, code blocks, and clear explanations.`
+
+    const result = await callGeminiAPI(prompt, "execution")
     if (result) {
       setAnalysisResult(formatAIResponse(result, "output"))
     }
@@ -474,49 +507,45 @@ Format your response like this:
     const code = getEditorValue()
     const language = getEditorLanguage()
 
-    const prompt = `Debug the following ${language} code with comprehensive analysis:
-1. Identify ALL potential issues (syntax, runtime, logical, performance)
-2. Explain each issue in detail with line references
-3. Provide completely fixed and improved code
-4. Suggest best practices and coding standards
-${programInput.length > 0 ? `5. Consider how the code handles this input: "${programInput.join("\\n")}"` : ""}
+    const prompt = `You are an expert ${language} debugging specialist. Please thoroughly debug this code:
 
-Code:
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Format your response like this:
-=== DEBUGGING REPORT ===
-[Comprehensive analysis of all issues found]
+Provide a comprehensive debugging report in this format:
 
-=== ISSUE BREAKDOWN ===
-**Syntax Errors:** [List any syntax issues]
-**Runtime Errors:** [List potential runtime problems]
-**Logic Errors:** [List logical mistakes]
-**Performance Issues:** [List inefficiencies]
+=== DEBUGGING REPORT ===
+Overall assessment of potential issues and code health.
+
+=== SYNTAX ANALYSIS ===
+Check for syntax errors, typos, and structural issues.
+
+=== LOGIC ANALYSIS ===
+Identify logical errors, edge cases, and potential runtime issues.
+
+=== PERFORMANCE ANALYSIS ===
+Highlight performance bottlenecks and inefficiencies.
+
+=== SECURITY ANALYSIS ===
+Identify potential security vulnerabilities and unsafe practices.
 
 === FIXED CODE ===
 \`\`\`${language}
-[Completely corrected and improved code]
+[Provide the corrected version of the code with all issues fixed]
 \`\`\`
 
 === EXPLANATION OF FIXES ===
-[Detailed explanation of each fix applied]
+Detailed explanation of each fix and why it was necessary.
 
-=== BEST PRACTICES ===
-[Modern coding standards and recommendations for ${language}]
+=== PREVENTION TIPS ===
+Best practices to avoid similar issues in the future.
 
-=== SECURITY CONSIDERATIONS ===
-[Any security improvements or vulnerabilities addressed]`
+Be thorough and educational. Include specific line references where applicable.`
 
-    const result = await callGeminiAPI(prompt, "debug")
+    const result = await callGeminiAPI(prompt, "debugging")
     if (result) {
-      const formattedResult = formatAIResponse(
-        `=== DEBUGGING REPORT ===\n${result.analysis}\n\n=== FIXED CODE ===\n\`\`\`${getEditorLanguage()}\n${result.fixedCode}\n\`\`\``,
-        "debug",
-      )
-      setAnalysisResult(formattedResult)
+      setAnalysisResult(formatAIResponse(result, "debug"))
     }
   }
 
@@ -527,46 +556,48 @@ Format your response like this:
     const code = getEditorValue()
     const language = getEditorLanguage()
 
-    const prompt = `Optimize the following ${language} code for maximum performance, readability, and maintainability:
+    const prompt = `You are an expert ${language} optimization specialist. Please optimize this code for performance, readability, and maintainability:
 
-Code:
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Format your response like this:
-=== OPTIMIZATION ANALYSIS ===
-[Detailed analysis of current code performance and areas for improvement]
+Provide a comprehensive optimization analysis:
 
-=== PERFORMANCE IMPROVEMENTS ===
-**Time Complexity:** [Analysis and improvements]
-**Space Complexity:** [Memory usage optimizations]
-**Algorithm Efficiency:** [Better algorithms or data structures]
+=== OPTIMIZATION OVERVIEW ===
+Summary of optimization opportunities and potential improvements.
+
+=== PERFORMANCE ANALYSIS ===
+**Time Complexity:** Current vs optimized
+**Space Complexity:** Memory usage analysis
+**Bottlenecks:** Identified performance issues
 
 === OPTIMIZED CODE ===
 \`\`\`${language}
-[Highly optimized version of the code]
+[Highly optimized version with improved algorithms and best practices]
 \`\`\`
 
-=== OPTIMIZATION TECHNIQUES APPLIED ===
-[Specific techniques used to improve the code]
+=== OPTIMIZATION TECHNIQUES ===
+Detailed explanation of optimization techniques applied:
+- Algorithm improvements
+- Data structure optimizations
+- Code restructuring
+- Modern language features utilized
 
-=== PERFORMANCE GAINS ===
-[Expected performance improvements with metrics]
+=== PERFORMANCE METRICS ===
+Expected performance improvements with benchmarks and comparisons.
 
 === READABILITY ENHANCEMENTS ===
-[How the code was made more readable and maintainable]
+How the code was made more maintainable and readable.
 
-=== MODERN ${language.toUpperCase()} FEATURES ===
-[Latest language features and best practices utilized]`
+=== BEST PRACTICES APPLIED ===
+Modern ${language} conventions and industry standards implemented.
 
-    const result = await callGeminiAPI(prompt, "optimize")
+Focus on both micro and macro optimizations while maintaining code clarity.`
+
+    const result = await callGeminiAPI(prompt, "optimization")
     if (result) {
-      const formattedResult = formatAIResponse(
-        `=== OPTIMIZATION ANALYSIS ===\nCode has been thoroughly optimized for performance and readability.\n\n=== OPTIMIZED CODE ===\n\`\`\`${getEditorLanguage()}\n${result}\n\`\`\``,
-        "optimize",
-      )
-      setAnalysisResult(formattedResult)
+      setAnalysisResult(formatAIResponse(result, "optimize"))
     }
   }
 
@@ -577,50 +608,59 @@ Format your response like this:
     const code = getEditorValue()
     const language = getEditorLanguage()
 
-    const prompt = `Perform a comprehensive analysis of the following ${language} code:
+    const prompt = `You are a senior software engineer providing a comprehensive code review for this ${language} code:
 
-Code:
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Format your response like this:
-=== CODE QUALITY ASSESSMENT ===
-[Overall code quality score and assessment]
+Provide an in-depth analysis covering all aspects:
+
+=== EXECUTIVE SUMMARY ===
+High-level overview of code quality and key findings.
 
 === ARCHITECTURE ANALYSIS ===
-[Code structure, design patterns, and architectural quality]
+Code structure, design patterns, and architectural decisions.
 
-=== EXECUTION FLOW ===
-[Step-by-step execution analysis with complexity notes]
+=== FUNCTIONALITY ASSESSMENT ===
+What the code does, how it works, and its intended purpose.
 
-=== EDGE CASES & ERROR HANDLING ===
-[Potential edge cases and how well they're handled]
+=== CODE QUALITY METRICS ===
+**Readability:** How easy is it to understand?
+**Maintainability:** How easy is it to modify?
+**Testability:** How well can it be tested?
+**Reusability:** How modular and reusable is it?
 
-=== SECURITY ANALYSIS ===
-[Security vulnerabilities and recommendations]
+=== TECHNICAL ANALYSIS ===
+**Algorithm Efficiency:** Time and space complexity
+**Error Handling:** Robustness and edge case coverage
+**Security Considerations:** Potential vulnerabilities
+**Concurrency:** Thread safety and parallel processing
 
-=== PERFORMANCE METRICS ===
-[Time/space complexity and performance characteristics]
+=== ADHERENCE TO STANDARDS ===
+Compliance with ${language} conventions and industry best practices.
 
-=== CODE MAINTAINABILITY ===
-[How easy it is to maintain and extend this code]
+=== IMPROVEMENT RECOMMENDATIONS ===
+Prioritized list of specific improvements:
+1. Critical issues requiring immediate attention
+2. Performance optimizations
+3. Code quality enhancements
+4. Long-term architectural improvements
 
-=== BEST PRACTICES COMPLIANCE ===
-[Adherence to ${language} coding standards and conventions]
+=== EDUCATIONAL VALUE ===
+Programming concepts and patterns demonstrated in this code.
 
-=== RECOMMENDATIONS ===
-[Specific recommendations for improvement]
+=== OVERALL RATING ===
+**Functionality:** [1-10]/10
+**Performance:** [1-10]/10
+**Readability:** [1-10]/10
+**Maintainability:** [1-10]/10
+**Security:** [1-10]/10
+**Overall Score:** [1-10]/10
 
-=== RATING BREAKDOWN ===
-**Functionality:** [/10]
-**Performance:** [/10]
-**Readability:** [/10]
-**Maintainability:** [/10]
-**Security:** [/10]
-**Overall Score:** [/10]`
+Provide detailed, actionable feedback with specific examples and suggestions.`
 
-    const result = await callGeminiAPI(prompt, "analyze")
+    const result = await callGeminiAPI(prompt, "analysis")
     if (result) {
       setAnalysisResult(formatAIResponse(result, "analyze"))
     }
@@ -628,36 +668,67 @@ Format your response like this:
 
   if (!isClient) {
     return (
-      <div className="h-screen flex items-center justify-center bg-white">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading AI Code Playground...</p>
+          <div className="relative mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg mx-auto">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div className="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
+              <span className="text-white text-xs font-bold">AI</span>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl opacity-20 animate-pulse"></div>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Loading AI Code Playground</h3>
+          <p className="text-gray-600">Initializing your intelligent coding environment...</p>
         </div>
       </div>
     )
   }
 
-  const mainContentHeight = showConsole ? `${playgroundHeight - 80 - consoleHeight}px` : `${playgroundHeight - 80}px`
+  const mainContentHeight = showConsole ? `${playgroundHeight - 100 - consoleHeight}px` : `${playgroundHeight - 100}px`
 
   return (
-    <div className="bg-gray-50 flex flex-col select-none">
+    <div className="bg-gray-50/80 flex flex-col select-none">
       <style>{`
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        /* Enhanced scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+        ::-webkit-scrollbar-thumb { 
+          background: linear-gradient(135deg, #cbd5e1, #94a3b8); 
+          border-radius: 4px; 
+          border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #94a3b8, #64748b); }
+        ::-webkit-scrollbar-corner { background: transparent; }
         * { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
         
-        .console-message { animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn {
-          from { opacity: 0; transform: translateX(-10px); }
-          to { opacity: 1; transform: translateX(0); }
+        /* Smooth animations */
+        .console-message { animation: slideInUp 0.3s ease-out; }
+        @keyframes slideInUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Resize handle styling */
+        .resize-handle {
+          position: relative;
+          transition: all 0.2s ease;
+        }
+        .resize-handle:hover::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          opacity: 0.1;
         }
       `}</style>
 
       <div
         ref={playgroundRef}
-        className="bg-gray-50 flex flex-col select-none border border-gray-200 rounded-lg shadow-lg overflow-hidden"
+        className="bg-white flex flex-col select-none border border-gray-200/80 rounded-2xl shadow-xl shadow-gray-900/5 overflow-hidden backdrop-blur-sm"
         style={{ height: `${playgroundHeight}px` }}
       >
         <PlaygroundHeader
@@ -690,9 +761,13 @@ Format your response like this:
 
           {layout === "split" && (
             <div
-              className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors flex-shrink-0 active:bg-blue-600"
+              className="w-2 bg-gray-200/80 hover:bg-gradient-to-b hover:from-blue-400 hover:to-purple-500 cursor-col-resize transition-all duration-200 flex-shrink-0 resize-handle group"
               onMouseDown={(e) => startResize("horizontal", e)}
-            />
+            >
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-1 h-8 bg-gray-400/50 rounded-full group-hover:bg-white/80 transition-colors"></div>
+              </div>
+            </div>
           )}
 
           {layout === "split" && (
@@ -707,9 +782,13 @@ Format your response like this:
 
         {showConsole && (
           <div
-            className="h-1 bg-gray-300 hover:bg-blue-500 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-600"
+            className="h-2 bg-gray-200/80 hover:bg-gradient-to-r hover:from-blue-400 hover:to-purple-500 cursor-row-resize transition-all duration-200 flex-shrink-0 resize-handle group"
             onMouseDown={(e) => startResize("vertical", e)}
-          />
+          >
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-8 h-1 bg-gray-400/50 rounded-full group-hover:bg-white/80 transition-colors"></div>
+            </div>
+          </div>
         )}
 
         {showConsole && (
@@ -728,49 +807,17 @@ Format your response like this:
         )}
       </div>
 
+      {/* Enhanced playground resize handle */}
       <div
-        className="h-2 bg-gray-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-500 border-t border-gray-300 flex items-center justify-center group"
+        className="h-3 bg-gradient-to-r from-gray-200/80 via-gray-300/80 to-gray-200/80 hover:from-blue-400 hover:via-purple-500 hover:to-blue-400 cursor-row-resize transition-all duration-300 flex-shrink-0 border-t border-gray-200/50 flex items-center justify-center group"
         onMouseDown={(e) => startResize("playground", e)}
       >
-        <div className="flex space-x-1 opacity-50 group-hover:opacity-75 transition-opacity">
-          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
-          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
-          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+        <div className="flex space-x-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+          <div className="w-8 h-0.5 bg-gray-500 rounded-full group-hover:bg-white group-hover:shadow-sm transition-all"></div>
+          <div className="w-8 h-0.5 bg-gray-500 rounded-full group-hover:bg-white group-hover:shadow-sm transition-all"></div>
+          <div className="w-8 h-0.5 bg-gray-500 rounded-full group-hover:bg-white group-hover:shadow-sm transition-all"></div>
         </div>
       </div>
-
-      {showChangeNotification && (
-        <div
-          className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg text-white flex items-center shadow-xl border-l-4 animate-slide-in ${
-            changeNotificationType === "success"
-              ? "bg-green-600 border-green-400"
-              : changeNotificationType === "error"
-                ? "bg-red-600 border-red-400"
-                : changeNotificationType === "warning"
-                  ? "bg-yellow-600 border-yellow-400"
-                  : "bg-blue-600 border-blue-400"
-          }`}
-        >
-          <div className="flex items-center space-x-3">
-            {changeNotificationType === "success" && <Check size={20} />}
-            {changeNotificationType === "error" && <AlertTriangle size={20} />}
-            {changeNotificationType === "warning" && <AlertTriangle size={20} />}
-            {changeNotificationType === "info" && <Terminal size={20} />}
-            <div>
-              <div className="font-medium">{changeNotificationMessage}</div>
-              <div className="text-xs opacity-90">
-                {changeNotificationType === "success"
-                  ? "Operation completed successfully"
-                  : changeNotificationType === "error"
-                    ? "Please check and try again"
-                    : changeNotificationType === "warning"
-                      ? "Please review the warning"
-                      : "Information updated"}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
