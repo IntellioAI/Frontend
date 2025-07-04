@@ -7,7 +7,6 @@ import type { editor } from "monaco-editor"
 // Import enhanced components
 import PlaygroundHeader from "./PlaygroundHeader"
 import EditorPane from "./EditorPane"
-import ConsolePanel from "./ConsolePanel"
 import AnalysisPane from "./AnalysisPane"
 import { formatAIResponse } from "./aiFormatterUtils"
 
@@ -135,7 +134,6 @@ public class Calculator {
   const [layout, setLayout] = useState<"split" | "editor">("editor")
   const [autoRun, setAutoRun] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [showConsole] = useState(true)
   const [isClient, setIsClient] = useState(false)
 
   // Console states
@@ -161,7 +159,7 @@ public class Calculator {
   const [isResizing, setIsResizing] = useState(false)
   const [resizeType, setResizeType] = useState<"horizontal" | "vertical" | "playground" | null>(null)
   const [editorWidth, setEditorWidth] = useState(50)
-  const [consoleHeight, setConsoleHeight] = useState(180)
+  const [consoleHeight, setConsoleHeight] = useState(200)
   const [playgroundHeight, setPlaygroundHeight] = useState(700)
 
   // Refs
@@ -174,7 +172,7 @@ public class Calculator {
     width: number
     height: number
     playgroundHeight: number
-  }>({ width: 50, height: 180, playgroundHeight: 600 })
+  }>({ width: 50, height: 200, playgroundHeight: 700 })
 
   // Initialize client-side
   useEffect(() => {
@@ -194,13 +192,6 @@ public class Calculator {
       setPlaygroundHeight(650)
     }
   }, [isMobileDevice])
-
-  // Scroll console to bottom when new messages arrive
-  useEffect(() => {
-    if (consoleRef.current) {
-      consoleRef.current.scrollTop = consoleRef.current.scrollHeight
-    }
-  }, [consoleOutput])
 
   // Console helper functions
   const addConsoleMessage = (type: "input" | "output" | "error" | "info" | "success" | "warning", content: string) => {
@@ -316,7 +307,7 @@ public class Calculator {
         const containerWidth = rect.width
         const deltaPercent = (deltaX / containerWidth) * 100
         const newWidth = resizeStartDimensions.current.width + deltaPercent
-        setEditorWidth(Math.max(40, Math.min(70, newWidth)))
+        setEditorWidth(Math.max(30, Math.min(80, newWidth)))
       } else if (resizeType === "vertical") {
         const deltaY = resizeStartPosition.current.y - e.clientY
         const newHeight = resizeStartDimensions.current.height + deltaY
@@ -324,7 +315,7 @@ public class Calculator {
       } else if (resizeType === "playground") {
         const deltaY = e.clientY - resizeStartPosition.current.y
         const newHeight = resizeStartDimensions.current.playgroundHeight + deltaY
-        setPlaygroundHeight(Math.max(600, Math.min(1200, newHeight)))
+        setPlaygroundHeight(Math.max(400, Math.min(1400, newHeight)))
       }
     },
     [isResizing, resizeType],
@@ -412,7 +403,6 @@ public class Calculator {
     }
   }
 
-
   // Enhanced code execution functions
   const detectInputRequirement = (code: string, language: string) => {
     if (language === "python") {
@@ -466,33 +456,25 @@ If your code asks for a number, simply type \`42\` in the console and press Ente
       return
     }
 
-    const prompt = `You are an expert ${language} code analyzer and executor. Please analyze and execute this code:
+    const prompt = `You are an expert ${language} code executor. Please execute this code and show ONLY the program output:
 
 ${programInput.length > 0 ? `**User Input Provided:** ${programInput.join(", ")}` : ""}
 
-**Code to Analyze:**
+**Code to Execute:**
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Please provide a comprehensive analysis in the following format:
+IMPORTANT: Show ONLY the exact output that this program would produce when executed. Do not include:
+- Code analysis
+- Explanations
+- Educational insights
+- Step-by-step breakdowns
+- Quality assessments
 
-=== CODE ANALYSIS ===
-Brief assessment of code correctness, quality, and functionality.
+Just show the clean program output as it would appear in a terminal or console.
 
-=== EXPECTED OUTPUT ===
-Show the exact output this code would produce when executed.
-
-=== EXECUTION FLOW ===
-Step-by-step explanation of how the code executes.
-
-=== CODE QUALITY ===
-Assessment of coding practices, efficiency, and potential improvements.
-
-=== EDUCATIONAL INSIGHTS ===
-Key programming concepts demonstrated in this code.
-
-Make your response educational and detailed. Use proper formatting with headers, code blocks, and clear explanations.`
+Format the output clearly and concisely.`
 
     const result = await callGeminiAPI(prompt, "execution")
     if (result) {
@@ -666,6 +648,31 @@ Provide detailed, actionable feedback with specific examples and suggestions.`
     }
   }
 
+  // Helper functions for console
+  const getMessageIcon = (type: "input" | "output" | "error" | "info" | "success" | "warning") => {
+    const icons = {
+      input: "❯",
+      output: "•",
+      error: "✕",
+      warning: "⚠",
+      success: "✓",
+      info: "ℹ",
+    }
+    return icons[type] || icons.output
+  }
+
+  const getMessageStyle = (type: "input" | "output" | "error" | "info" | "success" | "warning") => {
+    const styles = {
+      input: "text-blue-600",
+      output: "text-gray-700",
+      error: "text-red-600",
+      warning: "text-amber-600",
+      success: "text-green-600",
+      info: "text-blue-600",
+    }
+    return styles[type] || styles.output
+  }
+
   if (!isClient) {
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -688,7 +695,7 @@ Provide detailed, actionable feedback with specific examples and suggestions.`
     )
   }
 
-  const mainContentHeight = showConsole ? `${playgroundHeight - 100 - consoleHeight}px` : `${playgroundHeight - 100}px`
+  const mainContentHeight = `${playgroundHeight - 100 - consoleHeight}px`
 
   return (
     <div className="bg-gray-50/80 flex flex-col select-none">
@@ -762,7 +769,6 @@ Provide detailed, actionable feedback with specific examples and suggestions.`
               className="w-1 bg-gray-200/80 hover:bg-blue-400 cursor-col-resize transition-all duration-200 flex-shrink-0 resize-handle group"
               onMouseDown={(e) => startResize("horizontal", e)}
             >
-            
             </div>
           )}
 
@@ -776,38 +782,189 @@ Provide detailed, actionable feedback with specific examples and suggestions.`
           )}
         </div>
 
-        {showConsole && (
-          <div
-            className="h-1 bg-gray-200/80 hover:bg-blue-400 cursor-row-resize transition-all duration-200 flex-shrink-0 resize-handle group"
-            onMouseDown={(e) => startResize("vertical", e)}
-          >
-          </div>
-        )}
+        {/* Console Resizer */}
+        <div
+          className="h-1 bg-gray-200/80 hover:bg-blue-400 cursor-row-resize transition-all duration-200 flex-shrink-0 resize-handle group"
+          onMouseDown={(e) => startResize("vertical", e)}
+        >
+        </div>
 
-        {showConsole && (
-          <ConsolePanel
-            consoleOutput={consoleOutput}
-            currentInput={currentInput}
-            setCurrentInput={setCurrentInput}
-            waitingForInput={waitingForInput}
-            handleInputSubmit={handleInputSubmit}
-            handleKeyDown={handleKeyDown}
-            clearConsole={clearConsole}
-            consoleRef={consoleRef}
-            inputRef={inputRef}
-          />
-        )}
+        {/* Console Panel */}
+        <div 
+          className="bg-white border-t border-gray-200 flex flex-col"
+          style={{ height: `${consoleHeight}px` }}
+        >
+          {/* Console Header */}
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-gray-900">Console</span>
+              </div>
+
+              {consoleOutput.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-gray-500">
+                    {consoleOutput.length} log{consoleOutput.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              {waitingForInput && (
+                <div className="flex items-center space-x-2 px-2 py-1 bg-amber-100 border border-amber-200 rounded text-amber-700">
+                  <div className="w-1 h-1 bg-amber-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium">Waiting for input</span>
+                </div>
+              )}
+
+              {consoleOutput.length > 0 && (
+                <button
+                  onClick={clearConsole}
+                  className="flex items-center space-x-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded border border-gray-200 transition-colors"
+                  title="Clear console"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Clear</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Console Content */}
+          <div className="flex-1 flex flex-col">
+            {/* Messages Area */}
+            <div
+              ref={consoleRef}
+              className="flex-1 overflow-y-auto bg-gray-50"
+            >
+              {consoleOutput.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-4 border border-gray-200">
+                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-base font-medium text-gray-900 mb-2">Console</h4>
+                  <p className="text-sm text-gray-500 text-center max-w-sm mb-4">
+                    Output from your code execution will appear here. Start by running some code to see the results.
+                  </p>
+                  <div className="text-xs text-gray-400 font-mono bg-white rounded px-3 py-1 border">
+                    Ready for execution
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 space-y-1">
+                  {consoleOutput.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className="flex items-start space-x-3 py-1.5 px-2 rounded hover:bg-white/50 transition-colors group"
+                    >
+                      <div className="flex items-center space-x-2 text-xs text-gray-400 min-w-0 shrink-0">
+                        <span className="font-mono text-xs tabular-nums">
+                          {msg.timestamp.toLocaleTimeString("en-US", {
+                            hour12: false,
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })}
+                        </span>
+                      </div>
+
+                      <div className="flex items-start space-x-2 min-w-0 flex-1">
+                        <span className={`text-sm font-mono ${getMessageStyle(msg.type)} mt-0.5 shrink-0`}>
+                          {getMessageIcon(msg.type)}
+                        </span>
+                        <div
+                          className={`text-sm font-mono leading-relaxed break-words ${getMessageStyle(msg.type)} min-w-0`}
+                        >
+                          <pre className="whitespace-pre-wrap font-mono">{msg.content}</pre>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Input Area */}
+            <div className="border-t border-gray-200 bg-white p-3">
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 text-gray-500 shrink-0">
+                  <span className="text-sm font-mono text-gray-400">❯</span>
+                </div>
+
+                <div className="flex-1 relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={currentInput}
+                    onChange={(e) => setCurrentInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={waitingForInput ? "Enter input for program..." : "Type command or code..."}
+                    className="w-full bg-transparent text-gray-900 text-sm font-mono focus:outline-none placeholder-gray-400"
+                    autoComplete="off"
+                    spellCheck="false"
+                  />
+                </div>
+
+                <button
+                  onClick={handleInputSubmit}
+                  disabled={!currentInput.trim()}
+                  className="flex items-center space-x-1 px-3 py-1.5 bg-black text-white text-sm rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  <span>Send</span>
+                </button>
+              </div>
+
+              {/* Hints */}
+              <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono text-xs border border-gray-200">↑↓</kbd>
+                    <span>History</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono text-xs border border-gray-200">⏎</kbd>
+                    <span>Execute</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <kbd className="px-1.5 py-0.5 bg-gray-100 rounded font-mono text-xs border border-gray-200">Esc</kbd>
+                    <span>Clear</span>
+                  </div>
+                </div>
+                {waitingForInput && (
+                  <div className="flex items-center space-x-1 text-amber-600">
+                    <div className="w-1 h-1 bg-amber-500 rounded-full animate-pulse"></div>
+                    <span className="font-medium">Input required</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Enhanced playground resize handle */}
       <div
-          className="h-2 bg-gray-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-500 border-t border-gray-300 flex items-center justify-center group"
+        className="h-3 bg-gray-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-500 border-t border-gray-300 flex items-center justify-center group"
         onMouseDown={(e) => startResize("playground", e)}
       >
-       <div className="flex space-x-1 opacity-50 group-hover:opacity-75 transition-opacity">
-          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
-          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
-          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+        <div className="flex space-x-1 opacity-50 group-hover:opacity-75 transition-opacity">
+          <div className="w-8 h-0.5 bg-gray-400 rounded"></div>
+          <div className="w-8 h-0.5 bg-gray-400 rounded"></div>
+          <div className="w-8 h-0.5 bg-gray-400 rounded"></div>
         </div>
       </div>
     </div>

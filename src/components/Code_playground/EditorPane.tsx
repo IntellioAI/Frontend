@@ -20,22 +20,25 @@ interface EditorPaneProps {
   width: string
 }
 
-export default function EditorPane({
-  activeTab,
-  setActiveTab,
-  pythonCode,
-  cCode,
-  javaCode,
-  runCode,
-  debugCode,
-  optimizeCode,
-  fullAnalysis,
-  autoRun,
-  isLoading,
-  handleEditorDidMount,
-  handleEditorChange,
-  width,
-}: EditorPaneProps) {
+// Design 2: Pill-shaped buttons with subtle backgrounds
+export default function EditorPane(props: EditorPaneProps) {
+  const {
+    activeTab,
+    setActiveTab,
+    pythonCode,
+    cCode,
+    javaCode,
+    runCode,
+    debugCode,
+    optimizeCode,
+    fullAnalysis,
+    autoRun,
+    isLoading,
+    handleEditorDidMount,
+    handleEditorChange,
+    width,
+  } = props
+
   const tabs = [
     {
       id: "python" as const,
@@ -240,67 +243,50 @@ export default function EditorPane({
         </div>
       </div>
 
-      {/* AI Action Buttons - Single row with minimal icons */}
-      <div className="border-t border-gray-100 p-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-600">AI Assistant</span>
-          {isLoading && (
-            <div className="flex items-center space-x-1 text-xs text-gray-500">
-              <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
-              <span>Processing...</span>
-            </div>
-          )}
-        </div>
-
+      {/* Design 2: Pill-shaped buttons */}
+      <div className="border-t border-gray-100 px-3 py-3">
         <div className="flex items-center space-x-2">
           <button
             onClick={debugCode}
             disabled={isLoading}
-            className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-red-100 text-gray-700 hover:text-red-700 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={1.5}
+                strokeWidth={2}
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="font-medium">Debug</span>
+            <span>Debug</span>
           </button>
 
           <button
             onClick={optimizeCode}
             disabled={isLoading}
-            className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 text-sm text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-amber-100 text-gray-700 hover:text-amber-700 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span className="font-medium">Optimize</span>
+            <span>Optimize</span>
           </button>
 
           <button
             onClick={fullAnalysis}
             disabled={isLoading}
-            className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-blue-700 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={1.5}
+                strokeWidth={2}
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
               />
             </svg>
-            <span className="font-medium">Analyze</span>
+            <span>Analyze</span>
           </button>
         </div>
       </div>
