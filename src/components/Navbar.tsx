@@ -43,7 +43,7 @@ const productItems = [
   },
   {
     title: "Crafts Tools",
-    to: "/crafts",
+    to: "/products",
     icon: Wrench,
   },
   {
