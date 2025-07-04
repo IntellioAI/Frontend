@@ -135,7 +135,7 @@ public class Calculator {
   const [layout, setLayout] = useState<"split" | "editor">("editor")
   const [autoRun, setAutoRun] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [showConsole, setShowConsole] = useState(true)
+  const [showConsole] = useState(true)
   const [isClient, setIsClient] = useState(false)
 
   // Console states
@@ -174,7 +174,7 @@ public class Calculator {
     width: number
     height: number
     playgroundHeight: number
-  }>({ width: 50, height: 180, playgroundHeight: 700 })
+  }>({ width: 50, height: 180, playgroundHeight: 600 })
 
   // Initialize client-side
   useEffect(() => {
@@ -316,7 +316,7 @@ public class Calculator {
         const containerWidth = rect.width
         const deltaPercent = (deltaX / containerWidth) * 100
         const newWidth = resizeStartDimensions.current.width + deltaPercent
-        setEditorWidth(Math.max(30, Math.min(70, newWidth)))
+        setEditorWidth(Math.max(40, Math.min(70, newWidth)))
       } else if (resizeType === "vertical") {
         const deltaY = resizeStartPosition.current.y - e.clientY
         const newHeight = resizeStartDimensions.current.height + deltaY
@@ -736,8 +736,6 @@ Provide detailed, actionable feedback with specific examples and suggestions.`
           setAutoRun={setAutoRun}
           layout={layout}
           setLayout={setLayout}
-          showConsole={showConsole}
-          setShowConsole={setShowConsole}
         />
 
         <div className="flex-1 flex overflow-hidden" style={{ height: mainContentHeight }}>
@@ -761,12 +759,10 @@ Provide detailed, actionable feedback with specific examples and suggestions.`
 
           {layout === "split" && (
             <div
-              className="w-2 bg-gray-200/80 hover:bg-gradient-to-b hover:from-blue-400 hover:to-purple-500 cursor-col-resize transition-all duration-200 flex-shrink-0 resize-handle group"
+              className="w-1 bg-gray-200/80 hover:bg-blue-400 cursor-col-resize transition-all duration-200 flex-shrink-0 resize-handle group"
               onMouseDown={(e) => startResize("horizontal", e)}
             >
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-1 h-8 bg-gray-400/50 rounded-full group-hover:bg-white/80 transition-colors"></div>
-              </div>
+            
             </div>
           )}
 
@@ -782,12 +778,9 @@ Provide detailed, actionable feedback with specific examples and suggestions.`
 
         {showConsole && (
           <div
-            className="h-2 bg-gray-200/80 hover:bg-gradient-to-r hover:from-blue-400 hover:to-purple-500 cursor-row-resize transition-all duration-200 flex-shrink-0 resize-handle group"
+            className="h-1 bg-gray-200/80 hover:bg-blue-400 cursor-row-resize transition-all duration-200 flex-shrink-0 resize-handle group"
             onMouseDown={(e) => startResize("vertical", e)}
           >
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="w-8 h-1 bg-gray-400/50 rounded-full group-hover:bg-white/80 transition-colors"></div>
-            </div>
           </div>
         )}
 
@@ -802,20 +795,19 @@ Provide detailed, actionable feedback with specific examples and suggestions.`
             clearConsole={clearConsole}
             consoleRef={consoleRef}
             inputRef={inputRef}
-            height={consoleHeight}
           />
         )}
       </div>
 
       {/* Enhanced playground resize handle */}
       <div
-        className="h-3 bg-gradient-to-r from-gray-200/80 via-gray-300/80 to-gray-200/80 hover:from-blue-400 hover:via-purple-500 hover:to-blue-400 cursor-row-resize transition-all duration-300 flex-shrink-0 border-t border-gray-200/50 flex items-center justify-center group"
+          className="h-2 bg-gray-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0 active:bg-blue-500 border-t border-gray-300 flex items-center justify-center group"
         onMouseDown={(e) => startResize("playground", e)}
       >
-        <div className="flex space-x-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-          <div className="w-8 h-0.5 bg-gray-500 rounded-full group-hover:bg-white group-hover:shadow-sm transition-all"></div>
-          <div className="w-8 h-0.5 bg-gray-500 rounded-full group-hover:bg-white group-hover:shadow-sm transition-all"></div>
-          <div className="w-8 h-0.5 bg-gray-500 rounded-full group-hover:bg-white group-hover:shadow-sm transition-all"></div>
+       <div className="flex space-x-1 opacity-50 group-hover:opacity-75 transition-opacity">
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
+          <div className="w-6 h-0.5 bg-gray-400 rounded"></div>
         </div>
       </div>
     </div>

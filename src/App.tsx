@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
-import { lazy, Suspense, createContext, useContext, useState } from 'react';
+import { lazy, Suspense,  useState } from 'react';
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { SidebarStandalone } from "./components/sidebar";
@@ -13,20 +13,11 @@ const CodePlayground = lazy(() => import('./pages/Code_playground').then(module 
 
 // Import global styles
 import "./styles/global.css";
-
-// Sidebar context to manage sidebar state across components
-const SidebarContext = createContext<{
-  isCollapsed: boolean;
-  setIsCollapsed: (collapsed: boolean) => void;
-}>({
-  isCollapsed: true,
-  setIsCollapsed: () => {},
-});
-
-export const useSidebar = () => useContext(SidebarContext);
+// Remove useSidebar and SidebarContext from here
+import { SidebarContext, useSidebar } from "./context/SidebarContext";
 
 // Loading fallback component
-const LoadingFallback = () => (
+const LoadingFallback = () => ( 
   <div className="min-h-screen flex items-center justify-center bg-black">
     <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
   </div>

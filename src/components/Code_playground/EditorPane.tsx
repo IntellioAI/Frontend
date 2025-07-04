@@ -1,6 +1,6 @@
 "use client"
 import Editor from "@monaco-editor/react"
-import type { editor } from "monaco-editor"
+import { editor } from "monaco-editor"
 
 interface EditorPaneProps {
   activeTab: "python" | "c" | "java"
@@ -37,36 +37,51 @@ export default function EditorPane({
   width,
 }: EditorPaneProps) {
   const tabs = [
-    { 
-      id: 'python' as const, 
-      label: 'Python',
+    {
+      id: "python" as const,
+      label: "Python",
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+          />
         </svg>
       ),
-      color: 'text-blue-600'
+      color: "text-blue-600",
     },
-    { 
-      id: 'c' as const, 
-      label: 'C',
+    {
+      id: "c" as const,
+      label: "C",
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"
+          />
         </svg>
       ),
-      color: 'text-purple-600'
+      color: "text-purple-600",
     },
-    { 
-      id: 'java' as const, 
-      label: 'Java',
+    {
+      id: "java" as const,
+      label: "Java",
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+          />
         </svg>
       ),
-      color: 'text-orange-600'
-    }
+      color: "text-orange-600",
+    },
   ]
 
   const getEditorLanguage = () => {
@@ -97,14 +112,11 @@ export default function EditorPane({
 
   const getLineCount = () => {
     const currentCode = getEditorValue()
-    return currentCode.split('\n').length
+    return currentCode.split("\n").length
   }
 
   return (
-    <div 
-      className="flex flex-col bg-white border-r border-gray-200 shadow-sm"
-      style={{ width }}
-    >
+    <div className="flex flex-col bg-white border-r border-gray-200 shadow-sm" style={{ width }}>
       {/* Editor tabs */}
       <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50">
         <div className="flex">
@@ -112,41 +124,37 @@ export default function EditorPane({
             <button
               key={tab.id}
               className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium transition-all duration-200 border-b-2 ${
-                activeTab === tab.id 
-                  ? 'text-blue-600 border-blue-600 bg-white shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700 border-transparent hover:bg-gray-100'
+                activeTab === tab.id
+                  ? "text-blue-600 border-blue-600 bg-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 border-transparent hover:bg-gray-100"
               }`}
               onClick={() => setActiveTab(tab.id)}
             >
-              <div className={activeTab === tab.id ? tab.color : 'text-gray-400'}>
-                {tab.icon}
-              </div>
+              <div className={activeTab === tab.id ? tab.color : "text-gray-400"}>{tab.icon}</div>
               <span>{tab.label}</span>
               {activeTab === tab.id && (
-                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
-                  {getLineCount()} lines
-                </div>
+                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{getLineCount()} lines</div>
               )}
             </button>
           ))}
         </div>
-        
+
         <div className="flex items-center space-x-2 px-4">
-          <div className={`flex items-center space-x-1.5 text-xs transition-colors duration-200 ${
-            autoRun 
-              ? 'text-green-600' 
-              : 'text-gray-400'
-          }`}>
-            <div className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${
-              autoRun 
-                ? 'bg-green-500' 
-                : 'bg-gray-300'
-            }`}></div>
+          <div
+            className={`flex items-center space-x-1.5 text-xs transition-colors duration-200 ${
+              autoRun ? "text-green-600" : "text-gray-400"
+            }`}
+          >
+            <div
+              className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 ${
+                autoRun ? "bg-green-500" : "bg-gray-300"
+              }`}
+            ></div>
             <span className="font-medium">Live</span>
           </div>
-          
+
           <div className="w-px h-4 bg-gray-300"></div>
-          
+
           {!autoRun && (
             <button
               onClick={runCode}
@@ -155,11 +163,21 @@ export default function EditorPane({
             >
               {isLoading ? (
                 <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
               ) : (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h1m4 0h1M9 6h6a2 2 0 012 2v8a2 2 0 01-2 2H9a2 2 0 01-2-2V8a2 2 0 012-2z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h1m4 0h1M9 6h6a2 2 0 012 2v8a2 2 0 01-2 2H9a2 2 0 01-2-2V8a2 2 0 012-2z"
+                  />
                 </svg>
               )}
               <span>Run</span>
@@ -180,35 +198,35 @@ export default function EditorPane({
           options={{
             minimap: { enabled: false },
             fontSize: 14,
-            lineNumbers: 'on',
+            lineNumbers: "on",
             scrollBeyondLastLine: false,
             automaticLayout: true,
             tabSize: 2,
-            wordWrap: 'on',
+            wordWrap: "on",
             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
             padding: { top: 16, bottom: 16 },
             lineHeight: 1.6,
-            renderLineHighlight: 'gutter',
+            renderLineHighlight: "gutter",
             scrollbar: {
-              vertical: 'auto',
-              horizontal: 'auto',
+              vertical: "auto",
+              horizontal: "auto",
               useShadows: false,
               verticalScrollbarSize: 8,
-              horizontalScrollbarSize: 8
+              horizontalScrollbarSize: 8,
             },
             overviewRulerLanes: 0,
             hideCursorInOverviewRuler: true,
             overviewRulerBorder: false,
             bracketPairColorization: {
-              enabled: true
+              enabled: true,
             },
             suggest: {
               showKeywords: true,
-              showSnippets: true
-            }
+              showSnippets: true,
+            },
           }}
         />
-        
+
         {/* Editor status bar */}
         <div className="absolute bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-200 px-4 py-1 text-xs text-gray-500 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -222,41 +240,67 @@ export default function EditorPane({
         </div>
       </div>
 
-      {/* AI Action Buttons */}
-      <div className="border-t border-gray-200 p-4 bg-gray-50">
-        <div className="text-xs font-medium text-gray-700 mb-3">AI Assistant</div>
-        <div className="grid grid-cols-2 gap-2">
+      {/* AI Action Buttons - Single row with minimal icons */}
+      <div className="border-t border-gray-100 p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-gray-600">AI Assistant</span>
+          {isLoading && (
+            <div className="flex items-center space-x-1 text-xs text-gray-500">
+              <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              <span>Processing...</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center space-x-2">
           <button
             onClick={debugCode}
             disabled={isLoading}
-            className="flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
           >
-            <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            <span>Debug</span>
+            <span className="font-medium">Debug</span>
           </button>
 
           <button
             onClick={optimizeCode}
             disabled={isLoading}
-            className="flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 text-sm text-gray-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
           >
-            <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>Optimize</span>
+            <span className="font-medium">Optimize</span>
           </button>
 
           <button
             onClick={fullAnalysis}
             disabled={isLoading}
-            className="flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed col-span-2"
+            className="flex-1 flex items-center justify-center space-x-1.5 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
           >
-            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
-            <span>Full Analysis</span>
+            <span className="font-medium">Analyze</span>
           </button>
         </div>
       </div>

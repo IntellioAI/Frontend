@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Import the sidebar context
-import { useSidebar } from "../App"; // Adjust the import path as needed
+import { useSidebar } from '../context/SidebarContext';  
 
 const initialNavigationItems = [
   {
