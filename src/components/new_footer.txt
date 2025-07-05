@@ -1,0 +1,211 @@
+"use client"
+
+import * as React from "react"
+import { Link } from "react-router-dom"
+import { ChevronUp, Github, Twitter, Linkedin, Mail, MapPin, Phone, Youtube, Instagram } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
+export function Footer() {
+  const [isExpanded, setIsExpanded] = React.useState(false)
+
+  return (
+    <div className="fixed bottom-4 left-4 right-4 z-50">
+      <footer className="bg-black/90 backdrop-blur-md border border-white/10 ring-1 ring-white/10 rounded-2xl shadow-[0_-2px_15px_rgba(255,255,255,0.05)]">
+        {/* Collapsed State - Always Visible */}
+        <div className="flex items-center justify-center px-6 py-4 relative">
+          <p className="text-white/80 text-sm text-center">
+            © 2025{" "}
+            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent font-medium">
+              Intellio.AI
+            </span>
+            . All rights reserved.
+          </p>
+
+          {/* Premium Expand/Collapse Button */}
+          <div className="absolute right-4">
+            <Button
+              variant="ghost"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="group relative bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border border-white/10 hover:border-white/20 rounded-xl px-3 py-2 transition-all duration-300 hover:shadow-[0_0_15px_rgba(79,70,229,0.3)]"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-white/70 group-hover:text-white text-xs font-medium transition-colors duration-200">
+                  {isExpanded ? "Less" : "More"}
+                </span>
+                <div className="relative">
+                  <ChevronUp
+                    className={`h-4 w-4 text-white/70 group-hover:text-white transition-all duration-300 ${
+                      isExpanded ? "rotate-180" : ""
+                    }`}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                </div>
+              </div>
+            </Button>
+          </div>
+        </div>
+
+        {/* Expanded Content */}
+        <div
+          className={`overflow-hidden transition-all duration-500 ease-in-out ${
+            isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="border-t border-white/10 px-6 py-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+                {/* Brand & Social */}
+                <div className="lg:col-span-2">
+                  <Link to="/" className="flex items-center mb-6">
+                    <span className="font-bold text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                      Intellio AI
+                    </span>
+                  </Link>
+                  <p className="text-white/70 mb-6 max-w-md leading-relaxed">
+                    Empowering BTech students with comprehensive engineering education. Join our community of learners.
+                  </p>
+                  <div className="flex space-x-3">
+                    {[
+                      { icon: Github, href: "https://github.com", color: "hover:bg-gray-600/20" },
+                      { icon: Twitter, href: "https://twitter.com", color: "hover:bg-blue-600/20" },
+                      { icon: Linkedin, href: "https://linkedin.com", color: "hover:bg-blue-700/20" },
+                      { icon: Youtube, href: "https://youtube.com", color: "hover:bg-red-600/20" },
+                      { icon: Instagram, href: "https://instagram.com", color: "hover:bg-pink-600/20" },
+                    ].map((social, index) => (
+                      <a
+                        key={index}
+                        href={social.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`p-2.5 rounded-xl bg-white/5 text-white/70 hover:text-white ${social.color} transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg border border-white/5 hover:border-white/20`}
+                      >
+                        <social.icon className="h-5 w-5" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Products */}
+                <div>
+                  <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Products</h3>
+                  <ul className="space-y-3">
+                    {[
+                      { title: "Code Playground", to: "/playground" },
+                      { title: "Web Playground", to: "/web-playground" },
+                      { title: "Faculty Dashboard", to: "/faculty" },
+                      { title: "Crafts Tools", to: "/products" },
+                      { title: "AI Digital Clone", to: "/clone" },
+                    ].map((link, index) => (
+                      <li key={index}>
+                        <Link
+                          to={link.to}
+                          className="text-white/70 hover:text-white transition-all duration-200 flex items-center gap-2 group py-1"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-blue-500 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>
+                          <span className="group-hover:translate-x-1 transition-transform duration-200">
+                            {link.title}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Support */}
+                <div>
+                  <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Support</h3>
+                  <ul className="space-y-3">
+                    {[
+                      { title: "Documentation", to: "/docs" },
+                      { title: "Help Center", to: "/help" },
+                      { title: "API Reference", to: "/api" },
+                      { title: "Contact Us", to: "/contact" },
+                    ].map((link, index) => (
+                      <li key={index}>
+                        <Link
+                          to={link.to}
+                          className="text-white/70 hover:text-white transition-all duration-200 flex items-center gap-2 group py-1"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-purple-500 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:shadow-[0_0_8px_rgba(147,51,234,0.6)]"></span>
+                          <span className="group-hover:translate-x-1 transition-transform duration-200">
+                            {link.title}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Contact */}
+                <div>
+                  <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wide">Contact</h3>
+                  <ul className="space-y-4">
+                    {[
+                      {
+                        icon: MapPin,
+                        text: "Hyderabad, India",
+                        href: "https://maps.google.com/maps?q=Hyderabad,India",
+                        color: "group-hover:bg-green-600/20",
+                      },
+                      {
+                        icon: Phone,
+                        text: "+91 8001234567",
+                        href: "tel:+918001234567",
+                        color: "group-hover:bg-blue-600/20",
+                      },
+                      {
+                        icon: Mail,
+                        text: "support@intellio.ai",
+                        href: "mailto:support@intellio.ai",
+                        color: "group-hover:bg-purple-600/20",
+                      },
+                    ].map((contact, index) => (
+                      <li key={index}>
+                        <a
+                          href={contact.href}
+                          target={contact.href.startsWith("http") ? "_blank" : undefined}
+                          rel={contact.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                          className="flex items-center gap-3 text-white/70 hover:text-white transition-all duration-200 group"
+                        >
+                          <div
+                            className={`p-2 rounded-lg bg-white/5 text-white/60 group-hover:bg-white/10 group-hover:text-white transition-all duration-200 border border-white/5 group-hover:border-white/20 ${contact.color}`}
+                          >
+                            <contact.icon className="h-4 w-4" />
+                          </div>
+                          <span className="group-hover:translate-x-1 transition-transform duration-200 text-sm">
+                            {contact.text}
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Bottom Links */}
+              <div className="border-t border-white/10 mt-8 pt-6 flex justify-center">
+                <div className="flex items-center gap-6">
+                  {[
+                    { text: "Terms", to: "/terms" },
+                    { text: "Privacy", to: "/privacy" },
+                    { text: "About", to: "/about" },
+                    { text: "Careers", to: "/careers" },
+                  ].map((item, index) => (
+                    <Link
+                      key={index}
+                      to={item.to}
+                      className="text-white/60 hover:text-white text-sm transition-all duration-200 relative group px-2 py-1 rounded-lg hover:bg-white/5"
+                    >
+                      <span>{item.text}</span>
+                      <span className="absolute -bottom-1 left-2 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:w-[calc(100%-1rem)] transition-all duration-300"></span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}

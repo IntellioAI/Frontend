@@ -22,7 +22,7 @@ export function Footer() {
   }, []);
 
   return (
-    <footer className="bg-gradient-to-br from-black via-gray-950/95 to-black border-t border-gray-900 relative overflow-hidden">
+    <footer className="bg-black  border-t border-gray-900 relative overflow-hidden">
       {/* Subtle color accents for desktop only */}
       {!isMobileDevice && (
         <>
